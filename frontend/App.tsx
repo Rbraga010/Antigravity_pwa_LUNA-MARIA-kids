@@ -9,7 +9,7 @@ import {
   ShoppingBag, Palette, Gamepad2, Award, Download, Camera as CameraIcon,
   Users as UsersIcon, ShieldCheck, User, X, Check, AlertCircle, Zap,
   ArrowLeft, RefreshCw, Smartphone, CreditCard, Menu, Eye, Lock,
-  Settings2, CheckCircle2, Trophy, HelpCircle, ClipboardList
+  Settings2, CheckCircle2, Trophy, HelpCircle, ClipboardList, Truck, Star as StarIcon, ChevronLeft
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -317,102 +317,156 @@ const App: React.FC = () => {
     </div>
   );
 
-  const renderHome = () => (
-    <div className="pt-20 p-6 space-y-10 animate-in fade-in duration-500 pb-32">
-      <section className="text-center space-y-4 py-4">
-        <h1 className="text-2xl font-black text-[#6B5A53] font-luna leading-tight px-4 uppercase tracking-tighter">
-          Bem-vindo ao único lugar onde seu filho é o protagonista de um mundo encantado — todo mês.
-        </h1>
-        <p className="text-sm font-bold text-[#6B5A53]/60 font-quicksand max-w-[320px] mx-auto leading-relaxed italic">
-          Aqui, cada entrega não traz só produtos. Traz o tipo de lembrança que você vai ver nas fotos do futuro.
-        </p>
-      </section>
-
-      {/* Clube Luna Card */}
-      <section onClick={() => navigateTo(AppSection.SUBSCRIPTION)} className="neon-border-premium p-7 rounded-[48px] relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#BBD4E8]/20 rounded-2xl text-blue-500"><Moon size={24} /></div>
-            <h2 className="text-base font-black text-[#6B5A53] font-luna leading-tight uppercase">Clube Luna Maria Kids — A magia de ser criança, entregue na sua porta.</h2>
-          </div>
-          <div className="space-y-3">
-            <p className="text-xs font-bold text-[#6B5A53]/80 leading-relaxed italic">
-              "Não é só uma caixa. É quando seu filho corre, grita seu nome e te abraça como se fosse Natal. É quando você sente: “Tô acertando como pai/mãe”."
-            </p>
-          </div>
-          <button className="w-full bg-[#BBD4E8] text-white py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-100 group-hover:bg-[#6B5A53] transition-colors">
-            ✨ Quero esse momento TODO MÊS!
-          </button>
-        </div>
-      </section>
-
-      {/* Grid de Categorias com Novas Copys */}
-      <div className="grid grid-cols-2 gap-4">
-        {[
-          { id: AppSection.SHOP, icon: ShoppingBag, label: 'Escolha Roupas Que Eles Vão Amar Usar', color: 'bg-blue-50 border-blue-100', iconColor: 'text-blue-400', action: () => navigateTo(AppSection.SHOP) },
-          { id: AppSection.KIDS, icon: Gamepad2, label: 'Diversão Fora da Tela – Criatividade Sem Limites', color: 'bg-pink-50 border-pink-100', iconColor: 'text-pink-400', action: () => navigateTo(AppSection.KIDS) },
-          { id: AppSection.SHOP, icon: CameraIcon, label: 'Prove As Roupas No Avatar do Seu Filho (Antes de Comprar)', color: 'bg-purple-50 border-purple-100', iconColor: 'text-purple-400', action: () => setShowHomeTryOnInfo(true) },
-          { id: AppSection.FAMILY_MOMENT, icon: UsersIcon, label: 'Atividades Que Viram Histórias de Jantar em Família', color: 'bg-orange-50 border-orange-100', iconColor: 'text-orange-400', action: () => navigateTo(AppSection.FAMILY_MOMENT) }
-        ].map((block) => (
-          <button key={block.label} onClick={block.action} className={`p-5 rounded-[40px] border-2 shadow-sm flex flex-col items-center gap-3 active:scale-95 transition-all text-center h-full ${block.color}`}>
-            <div className={`p-4 bg-white rounded-3xl shadow-sm ${block.iconColor}`}><block.icon size={32} /></div>
-            <span className="font-black text-[10px] text-[#6B5A53] font-luna leading-tight px-1 uppercase tracking-tighter">{block.label}</span>
-          </button>
-        ))}
+  const ProductCard = ({ product, onTryOn }: { product: Product, onTryOn: (p: Product) => void }) => (
+    <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col min-w-[240px] max-w-[240px] group transition-all hover:shadow-md">
+      <div className="relative aspect-[4/5] overflow-hidden">
+        <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <button
+          onClick={() => addToCart(product)}
+          className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg text-[#6B5A53] active:scale-95 transition-all"
+        >
+          <Plus size={20} />
+        </button>
       </div>
-
-      {/* Sessão de Conexão Emocional - Pain Points e Solução */}
-      <section className="bg-white p-10 rounded-[56px] shadow-sm border border-[#F5F1E8] space-y-10 mt-4">
-        <div className="space-y-6">
-          <div className="flex gap-4 items-start">
-            <span className="text-xl">💔</span>
-            <p className="text-xs font-bold text-[#6B5A53]/80 leading-relaxed italic">Seu filho já esqueceu o último brinquedo que compraram.</p>
-          </div>
-          <div className="flex gap-4 items-start">
-            <span className="text-xl">🕒</span>
-            <p className="text-xs font-bold text-[#6B5A53]/80 leading-relaxed italic">Você sente que o tempo tá voando — e que tá difícil estar presente como queria.</p>
-          </div>
-          <div className="flex gap-4 items-start">
-            <span className="text-xl">😓</span>
-            <p className="text-xs font-bold text-[#6B5A53]/80 leading-relaxed italic">Comprar roupa virou tarefa mecânica — não um gesto de conexão.</p>
-          </div>
+      <div className="p-4 space-y-2">
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map(s => <StarIcon key={s} size={10} className="fill-yellow-400 text-yellow-400" />)}
+          <span className="text-[9px] text-gray-400 font-bold ml-1">(4.9)</span>
         </div>
-
-        <div className="text-center space-y-2">
-          <span className="text-2xl">🌙</span>
-          <h2 className="text-xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter">A Luna Maria Kids nasceu pra mudar isso.</h2>
+        <h3 className="text-xs font-black text-[#6B5A53] uppercase tracking-tighter line-clamp-1">{product.name}</h3>
+        <div className="space-y-0.5">
+          <p className="text-sm font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase italic">Ou 3x de R$ {(product.price / 3).toFixed(2)}</p>
         </div>
-
-        <div className="space-y-6">
-          <div className="bg-[#BBD4E8]/10 p-8 rounded-[40px] space-y-6 border border-[#BBD4E8]/20">
-            <p className="text-xs font-black text-blue-500 uppercase tracking-widest text-center leading-relaxed">🚀 Com la assinatura do Clube Luna, cada mês vira um capítulo especial da história da sua família.</p>
-            <div className="space-y-4">
-              {[
-                'Seu filho espera a caixa como se fosse Natal antecipado.',
-                'Você se sente presente, mesmo na correria.',
-                'A rotina vira um ritual de afeto — roupas, surpresas, brincadeiras e conexão.'
-              ].map((text, i) => (
-                <div key={i} className="flex gap-3 items-center">
-                  <div className="bg-blue-400 rounded-full p-1 shrink-0"><Check size={10} className="text-white" /></div>
-                  <p className="text-[11px] font-bold text-[#6B5A53] leading-snug">{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center space-y-8 pt-4">
-          <div className="space-y-3">
-            <p className="text-sm font-bold text-[#6B5A53] leading-relaxed">
-              <span className="text-xl block mb-2">📦</span>
-              <span className="font-black">Luna Maria Kids não é só e-commerce.</span><br />
-              <span className="text-xs italic opacity-70 leading-relaxed">É o primeiro clube do Brasil feito pra transformar a infância — e fortalecer laços de família.</span>
-            </p>
-          </div>
-          <button onClick={() => navigateTo(AppSection.SUBSCRIPTION)} className="w-full bg-[#6B5A53] text-white py-6 rounded-[32px] font-black text-xs uppercase tracking-widest shadow-2xl active:scale-95 transition-all">
-            ✨ Escolha seu plano. E transforme todo mês em uma lembrança mágica.
+        <div className="pt-2 flex flex-col gap-2">
+          <button
+            onClick={() => onTryOn(product)}
+            className="w-full py-2.5 bg-purple-50 text-purple-400 rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 border border-purple-100"
+          >
+            <CameraIcon size={12} /> Provar agora mesmo
+          </button>
+          <button
+            onClick={() => addToCart(product)}
+            className="w-full py-2.5 bg-[#6B5A53] text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm active:scale-95"
+          >
+            Comprar
           </button>
         </div>
+      </div>
+    </div>
+  );
+
+  const ProductCarousel = ({ title, products, onTryOn }: { title: string, products: Product[], onTryOn: (p: Product) => void }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const scroll = (dir: 'left' | 'right') => {
+      if (scrollRef.current) {
+        const amt = dir === 'left' ? -300 : 300;
+        scrollRef.current.scrollBy({ left: amt, behavior: 'smooth' });
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-sm font-black text-[#6B5A53] uppercase tracking-widest italic">{title}</h2>
+          <div className="flex gap-2">
+            <button onClick={() => scroll('left')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-[#6B5A53]"><ChevronLeft size={16} /></button>
+            <button onClick={() => scroll('right')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-[#6B5A53]"><ChevronRight size={16} /></button>
+          </div>
+        </div>
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 px-2 snap-x snap-mandatory"
+        >
+          {products.map(p => (
+            <div key={p.id} className="snap-start">
+              <ProductCard product={p} onTryOn={onTryOn} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderHome = () => (
+    <div className="pt-20 space-y-12 animate-in fade-in duration-500 pb-32 overflow-x-hidden">
+      {/* Hero Banner */}
+      <section className="px-6">
+        <div className="relative h-[400px] rounded-[48px] overflow-hidden group cursor-pointer" onClick={() => navigateTo(AppSection.SUBSCRIPTION)}>
+          <img src={CLUB_IMAGES.hero} alt="Mundo Luna Maria" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+          <div className="absolute bottom-10 left-10 right-10 text-white space-y-4">
+            <h1 className="text-3xl font-black font-luna uppercase italic tracking-tighter leading-none shadow-sm">Vista a Magia de Ser Criança</h1>
+            <p className="text-sm font-bold italic opacity-90 max-w-[280px]">Assine e transforme cada mês em uma lembrança inesquecível.</p>
+            <button className="bg-white text-[#6B5A53] px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl">Desbloqueie a Magia</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Seção de Benefícios */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6">
+        {[
+          { color: 'bg-blue-50', icon: Truck, t: 'FRETE GRÁTIS', d: 'Em todo o clube' },
+          { color: 'bg-pink-50', icon: CreditCard, t: 'ATÉ 10X', d: 'Sem juros no cartão' },
+          { color: 'bg-cream', icon: ShieldCheck, t: 'TROCA FÁCIL', d: '30 dias garantidos' },
+          { color: 'bg-orange-50', icon: Award, t: 'SELO LUNA', d: 'Qualidade premium' }
+        ].map((b, i) => (
+          <div key={i} className={`${b.color} p-5 rounded-3xl border border-white flex flex-col items-center text-center gap-2 shadow-sm`}>
+            <b.icon size={20} className="text-[#6B5A53]/40" />
+            <h3 className="text-[10px] font-black text-[#6B5A53] tracking-tighter">{b.t}</h3>
+            <p className="text-[8px] font-bold text-gray-400 uppercase italic">{b.d}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* Categorias Circulares */}
+      <section className="space-y-6">
+        <h2 className="text-center text-sm font-black text-[#6B5A53] uppercase tracking-widest">Navegar por categoria</h2>
+        <div className="flex justify-between px-6 gap-2 overflow-x-auto scrollbar-hide">
+          {[
+            { label: 'Menina', img: '/girl.png' },
+            { label: 'Menino', img: '/boy.png' },
+            { label: 'Bebê', img: '/baby.png' },
+            { label: 'Mimos', img: '/toys.png' }
+          ].map((cat, i) => (
+            <button key={i} onClick={() => navigateTo(AppSection.SHOP)} className="flex flex-col items-center gap-3 shrink-0 group">
+              <div className="w-[85px] h-[85px] rounded-full overflow-hidden border-4 border-white shadow-md transition-transform group-hover:scale-105">
+                <img src={cat.img} alt={cat.label} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-[10px] font-black text-[#6B5A53] uppercase tracking-tighter">{cat.label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Vitrine 1: Mais Amados */}
+      <section className="px-6">
+        <ProductCarousel
+          title="✨ Mais Amados da Luna"
+          products={INITIAL_PRODUCTS}
+          onTryOn={(p) => { setSelectedProduct(p); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }}
+        />
+      </section>
+
+      {/* Banner de Assinatura Meio de Página */}
+      <section className="px-6">
+        <div className="bg-[#6B5A53] p-8 rounded-[48px] text-white space-y-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Moon size={120} /></div>
+          <div className="relative z-10 space-y-4">
+            <h2 className="text-xl font-black font-luna uppercase italic tracking-tighter leading-tight">Clube Luna Maria: Mais que Moda, Conexão Real.</h2>
+            <p className="text-xs font-bold leading-relaxed italic pr-12">Receba mensalmente o kit que faz os olhos do seu filho brilharem de alegria.</p>
+            <button onClick={() => navigateTo(AppSection.SUBSCRIPTION)} className="bg-white text-[#6B5A53] px-6 py-3 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl">Assinar Agora</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Vitrine 2: Novidades */}
+      <section className="px-6">
+        <ProductCarousel
+          title="🌙 Novidades Encantadas"
+          products={[...INITIAL_PRODUCTS].reverse()}
+          onTryOn={(p) => { setSelectedProduct(p); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }}
+        />
       </section>
 
       {showHomeTryOnInfo && renderHomeTryOnPopup()}
@@ -604,41 +658,40 @@ const App: React.FC = () => {
     };
 
     return (
-      <div className="pt-20 p-6 space-y-10 pb-32 animate-in slide-in-from-right duration-500 min-h-screen">
+      <div className="pt-24 space-y-12 pb-32 animate-in slide-in-from-right duration-500 min-h-screen overflow-x-hidden">
         {tryOnStep === 0 ? (
           <>
-            <header className="space-y-2">
-              <h2 className="text-2xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter">Coleção Encantada</h2>
-              <p className="text-xs font-bold text-gray-400 italic">Looks que transmitem carinho e liberdade.</p>
+            <header className="px-6 space-y-2">
+              <h2 className="text-2xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter italic">Nossa Coleção</h2>
+              <p className="text-xs font-bold text-gray-400 italic">Curadoria exclusiva para momentos de felicidade.</p>
             </header>
 
-            <div className="grid grid-cols-1 gap-10">
-              {INITIAL_PRODUCTS.map(product => (
-                <div key={product.id} className="bg-white rounded-[56px] overflow-hidden shadow-2xl border border-gray-100 flex flex-col group animate-in slide-up">
-                  <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
-                    <div className="absolute top-8 left-8 flex flex-col gap-2">
-                      <span className="bg-[#BBD4E8] text-white px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg">Selo de Qualidade Luna</span>
-                    </div>
-                    <div className="absolute bottom-8 left-8 right-8 flex flex-col gap-3">
-                      <button onClick={() => addToCart(product)} className="w-full bg-[#6B5A53] text-white py-5 rounded-[28px] font-black text-xs uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all">
-                        <ShoppingBag size={18} /> Comprar Look
-                      </button>
-                      <button onClick={() => handleTryClick(product)} className={`w-full py-5 rounded-[28px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all ${isSubscriber ? 'bg-white text-purple-400' : 'bg-white/90 backdrop-blur-sm text-gray-400'}`}>
-                        {isSubscriber ? <RefreshCw size={18} /> : <Lock size={18} />}
-                        {isSubscriber ? 'Provar agora mesmo' : 'Provar agora mesmo (Clube)'}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-10 flex justify-between items-end">
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-black text-[#6B5A53] font-luna uppercase leading-tight italic">{product.name}</h3>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.category === 'clothes' ? 'Vestuário Premium' : 'Brinquedo Afetivo'}</p>
-                    </div>
-                    <p className="text-2xl font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
-                  </div>
-                </div>
+            {/* Categorias Filtro Horizontal */}
+            <div className="flex gap-3 px-6 overflow-x-auto scrollbar-hide">
+              {['Todos', 'Vestidos', 'Conjuntos', 'Brinquedos', 'Acessórios'].map((cat, i) => (
+                <button key={i} className={`shrink-0 px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${i === 0 ? 'bg-[#6B5A53] text-white border-[#6B5A53]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'}`}>
+                  {cat}
+                </button>
               ))}
+            </div>
+
+            <div className="px-6">
+              <ProductCarousel
+                title="Sugestões para Você"
+                products={INITIAL_PRODUCTS}
+                onTryOn={handleTryClick}
+              />
+            </div>
+
+            <div className="px-6 space-y-6">
+              <h2 className="text-sm font-black text-[#6B5A53] uppercase tracking-widest italic ml-2">Explorar Tudo</h2>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+                {INITIAL_PRODUCTS.map(product => (
+                  <div key={product.id} className="flex flex-col gap-2">
+                    <ProductCard product={product} onTryOn={handleTryClick} />
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         ) : (
