@@ -5,7 +5,16 @@ export default {
         "./**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                quicksand: ['Quicksand', 'sans-serif'],
+                outfit: ['Outfit', 'sans-serif'],
+                luna: ['Outfit', 'sans-serif'],
+            },
+            colors: {
+                cream: '#FAF8F5',
+            }
+        },
     },
     plugins: [],
 }
