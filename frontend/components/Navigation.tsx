@@ -12,7 +12,7 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, cartCount }) => {
   const navItems = [
     { id: AppSection.HOME, label: 'Início', icon: Home, color: 'text-blue-400' },
-    { id: AppSection.SHOP, label: 'Loja', icon: ShoppingBag, color: 'text-purple-400' },
+    { id: AppSection.SHOP, label: 'Loja Mágica', icon: ShoppingBag, color: 'text-purple-400' },
     { id: AppSection.SUBSCRIPTION, label: 'Clube', icon: Heart, color: 'text-pink-400' },
     { id: AppSection.KIDS, label: 'Kids', icon: Gamepad2, color: 'text-orange-400' },
   ];
@@ -23,9 +23,8 @@ const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, car
         <button
           key={item.id}
           onClick={() => onNavigate(item.id)}
-          className={`flex flex-col items-center gap-1 transition-all ${
-            currentSection === item.id ? 'scale-110 ' + item.color : 'text-gray-300 hover:text-gray-500'
-          }`}
+          className={`flex flex-col items-center gap-1 transition-all ${currentSection === item.id ? 'scale-110 ' + item.color : 'text-gray-300 hover:text-gray-500'
+            }`}
         >
           <item.icon size={22} strokeWidth={currentSection === item.id ? 2.5 : 2} />
           <span className="text-[9px] font-black uppercase tracking-widest">{item.label}</span>
@@ -33,9 +32,8 @@ const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, car
       ))}
       <button
         onClick={() => onNavigate(AppSection.CART)}
-        className={`relative p-2.5 rounded-full transition-all ${
-          currentSection === AppSection.CART ? 'bg-[#BBD4E8] text-white scale-110' : 'bg-gray-50 text-[#6B5A53] hover:bg-gray-100'
-        }`}
+        className={`relative p-2.5 rounded-full transition-all ${currentSection === AppSection.CART ? 'bg-[#BBD4E8] text-white scale-110' : 'bg-gray-50 text-[#6B5A53] hover:bg-gray-100'
+          }`}
       >
         <ShoppingCart size={22} strokeWidth={2.5} />
         {cartCount > 0 && (
