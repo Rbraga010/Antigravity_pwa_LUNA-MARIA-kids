@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Always use new GoogleGenAI({apiKey: process.env.API_KEY}) as per guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || "dummy-key" });
 
 export const generateColoringImage = async (prompt: string) => {
   try {
