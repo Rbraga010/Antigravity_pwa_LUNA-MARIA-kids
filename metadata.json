@@ -1,0 +1,13 @@
+{
+  "name": "Antigravity_pwa_LUNA MARIA kids",
+  "short_name": "Luna Maria",
+  "description": "Uma experiência mágica que une ecommerce infantil, jogos interativos com IA e ferramentas para toda a família.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#BBD4E8",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
