@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password_hash String
+  name          String
+  created_at    DateTime       @default(now())
+  subscriptions Subscription[]
+  orders        Order[]
+  try_on_logs   TryOnLog[]
+
+  @@map("users")
+}
+
+model Product {
+  id          String     @id @default(uuid())
+  name        String
+  description String
+  price       Decimal    @db.Decimal(10, 2)
+  image_url   String
+  stock       Int
+  category    String
+  try_on_logs TryOnLog[]
+
+  @@map("products")
+}
+
+model Subscription {
+  id           String             @id @default(uuid())
+  user_id      String
+  user         User               @relation(fields: [user_id], references: [id])
+  plan         SubscriptionPlan
+  status       SubscriptionStatus
+  renewal_date DateTime
+  created_at   DateTime           @default(now())
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionPlan {
+  basico
+  medio
+  avancado
+}
+
+enum SubscriptionStatus {
+  ativa
+  cancelada
+  pendente
+}
+
+model Order {
+  id               String   @id @default(uuid())
+  user_id          String
+  user             User     @relation(fields: [user_id], references: [id])
+  items            Json
+  total_amount     Decimal  @db.Decimal(10, 2)
+  status           String
+  shipping_address Json
+  created_at       DateTime @default(now())
+
+  @@map("orders")
+}
+
+model TryOnLog {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  product_id String
+  product    Product  @relation(fields: [product_id], references: [id])
+  created_at DateTime @default(now())
+  downloaded Boolean  @default(false)
+
+  @@map("try_on_logs")
+}
