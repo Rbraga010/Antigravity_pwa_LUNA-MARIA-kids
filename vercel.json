@@ -1,0 +1,12 @@
+{
+    "buildCommand": "npm run build",
+    "installCommand": "npm install && npm install --prefix frontend && npm install --prefix backend",
+    "framework": "vite",
+    "outputDirectory": "frontend/dist",
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "/backend/src/index.ts"
+        }
+    ]
+}
