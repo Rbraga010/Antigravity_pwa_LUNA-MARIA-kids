@@ -62,6 +62,7 @@ const App: React.FC = () => {
   const [childrenProfiles, setChildrenProfiles] = useState<string[]>([]);
   const [showIframeModal, setShowIframeModal] = useState(false);
   const [iframeUrl, setIframeUrl] = useState('');
+  const [showConstructionPopup, setShowConstructionPopup] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -349,7 +350,7 @@ const App: React.FC = () => {
             sub: 'Diversão que educa. IA que entende a infância.',
             d: 'Jogos criativos, desafios e desenhos com IA — sem tela vazia, sem culpa.',
             color: 'bg-pink-400',
-            section: AppSection.KIDS
+            onClick: () => setShowConstructionPopup(true)
           },
           {
             icon: UsersIcon,
@@ -357,7 +358,7 @@ const App: React.FC = () => {
             sub: 'Onde vínculos se fortalecem sem esforço.',
             d: 'Atividades e rituais pra criar famílias inabaláveis. A Luna te ajuda a ser presente, mesmo na correria.',
             color: 'bg-orange-400',
-            section: AppSection.HOME
+            onClick: () => setShowConstructionPopup(true)
           },
           {
             icon: Moon,
@@ -1047,6 +1048,26 @@ const App: React.FC = () => {
       )}
 
       {showHomeTryOnInfo && renderHomeTryOnPopup()}
+
+      {/* Construction Popup */}
+      {showConstructionPopup && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-sm rounded-[64px] p-12 shadow-2xl text-center space-y-8 animate-in zoom-in duration-500 relative">
+            <button onClick={() => setShowConstructionPopup(false)} className="absolute top-8 right-8 p-2 bg-gray-50 rounded-full text-gray-400"><X size={20} /></button>
+            <div className="w-20 h-20 bg-orange-50 rounded-[32px] flex items-center justify-center mx-auto border-2 border-white shadow-sm text-orange-400"><Sparkles size={40} /></div>
+            <div className="space-y-3">
+              <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic leading-tight">Espaço em Construção Mágica</h3>
+              <p className="text-xs font-bold text-[#6B5A53]/60 leading-relaxed italic">Estamos preparando algo incrível para fortalecer os laços da sua família. Volte em breve!</p>
+            </div>
+            <button
+              onClick={() => setShowConstructionPopup(false)}
+              className="w-full bg-[#6B5A53] text-white py-5 rounded-[28px] font-black text-xs uppercase shadow-xl hover:scale-105 active:scale-95 transition-all"
+            >
+              Entendido ✨
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Payment Logic (Upsell) */}
       {showPaymentModal && (

@@ -66,12 +66,20 @@
 }
 
 .animated-gradient-text {
-    background: linear-gradient(-45deg, #6B5A53, #BBD4E8, #F5D8E8, #6B5A53);
-    background-size: 300% 300%;
-    animation: gradient-shift 6s ease infinite, float-gentle 4s ease-in-out infinite;
+    background: linear-gradient(to right,
+            #4a3b35 20%,
+            /* Darker Brown */
+            #3b5a74 40%,
+            /* Darker Blue */
+            #8f4b66 60%,
+            /* Darker Pink */
+            #3b5a74 80%,
+            #4a3b35 100%);
+    background-size: 200% auto;
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 4s linear infinite, float-gentle 6s ease-in-out infinite;
 }
 
 /* Custom Font Luna - Fallback to cursive for magical feel */
