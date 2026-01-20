@@ -24,6 +24,7 @@ import 'swiper/css/navigation';
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || "dummy-key" });
 
 const LOGO_URL = "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696e918f65acf041fba6c97f.png";
+const CLUB_URL = "https://publicado-p-gina-clubeda-luna.vercel.app/";
 
 const CLUB_IMAGES = {
   hero: "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696e6294c7f17f241fc1763c.png",
@@ -59,6 +60,8 @@ const App: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('4');
   const [selectedColor, setSelectedColor] = useState('Azul');
   const [childrenProfiles, setChildrenProfiles] = useState<string[]>([]);
+  const [showIframeModal, setShowIframeModal] = useState(false);
+  const [iframeUrl, setIframeUrl] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -361,12 +364,12 @@ const App: React.FC = () => {
             sub: 'Não é só uma caixa. É o momento que seu filho vai lembrar pra sempre.',
             d: 'Assinatura mensal com roupas, mimos e conexão. Todo mês, um ritual de afeto em família.',
             color: 'bg-purple-400',
-            section: AppSection.SUBSCRIPTION
+            onClick: () => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }
           }
         ].map((diff, i) => (
           <div
             key={i}
-            onClick={() => diff.section && navigateTo(diff.section)}
+            onClick={() => diff.onClick ? diff.onClick() : (diff.section && navigateTo(diff.section))}
             className="group cursor-pointer space-y-6"
           >
             <div className={`${diff.color} aspect-[4/3] rounded-[48px] shadow-xl flex items-center justify-center text-white transition-all group-hover:scale-[1.02] group-hover:shadow-2xl overflow-hidden relative`}>
@@ -450,6 +453,72 @@ const App: React.FC = () => {
       </section>
     );
   };
+
+  const TryOnShowcase = () => (
+    <section className="px-6 lg:px-20 py-16 bg-white overflow-hidden">
+      <div className="bg-cream rounded-[64px] p-10 lg:p-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-20 shadow-xl border border-pink-50 relative">
+        <div className="flex-1 space-y-8 relative z-10">
+          <div className="space-y-4">
+            <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter leading-tight">
+              Vista seu filho com magia antes de comprar.
+            </h2>
+            <p className="text-base lg:text-xl font-bold text-gray-500 italic leading-relaxed">
+              Só aqui você escolhe o look, envia uma foto e vê como fica de verdade.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-pink-400 rounded-full flex items-center justify-center text-white shrink-0"><Sparkles size={20} /></div>
+              <p className="text-sm font-black text-[#6B5A53] uppercase italic">Primeiro provador infantil com IA do Brasil.</p>
+            </div>
+            <p className="text-xs font-bold text-gray-400 italic leading-relaxed pl-13">
+              É simples. É exclusivo. É Luna Maria.
+            </p>
+            <button
+              onClick={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }}
+              className="px-10 py-5 bg-[#6B5A53] text-white rounded-[32px] font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+            >
+              Escolher Look & Testar Agora ✨
+            </button>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-1/3 aspect-[9/16] bg-white rounded-[40px] shadow-2xl border-8 border-gray-100 relative overflow-hidden flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 text-center p-8 opacity-20">
+            <Smartphone size={64} />
+            <p className="font-black text-xs uppercase tracking-widest">Mockup de Vídeo</p>
+          </div>
+          <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/20 to-transparent flex justify-center">
+            <div className="h-1.5 w-24 bg-white/50 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const ExternalIframeModal = () => (
+    <div className={`fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center transition-all duration-500 ${showIframeModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`bg-white w-full h-[95vh] rounded-t-[48px] overflow-hidden relative transition-transform duration-500 transform ${showIframeModal ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className="absolute top-6 right-6 z-[210] flex gap-3">
+          <button
+            onClick={() => setShowIframeModal(false)}
+            className="p-4 bg-white shadow-lg rounded-full text-[#6B5A53] hover:scale-105 active:scale-95 transition-all"
+          >
+            <X size={28} />
+          </button>
+        </div>
+
+        <div className="h-full w-full pt-16">
+          <iframe
+            src={iframeUrl}
+            className="w-full h-full border-none"
+            title="External Landing Page"
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   const DepartmentCarousel = ({ id, title, products }: { id: string, title: string, products: Product[] }) => (
     <section id={id} className="px-6 lg:px-20 py-12 space-y-8 overflow-hidden">
@@ -692,6 +761,8 @@ const App: React.FC = () => {
     <div className="animate-in slide-in-from-right duration-500 min-h-screen pb-32">
       <CategoryMenu />
 
+      <TryOnShowcase />
+
       <div className="mt-8">
         <DepartmentCarousel id="offers" title="🌙 Uma Lua de Ofertas" products={INITIAL_PRODUCTS} />
         <DepartmentCarousel id="menina" title="🎀 Moda Menina" products={INITIAL_PRODUCTS} />
@@ -928,6 +999,8 @@ const App: React.FC = () => {
       <Header />
       <MobileSearch />
       <TickerBar />
+
+      <ExternalIframeModal />
 
       <Sidebar />
 
