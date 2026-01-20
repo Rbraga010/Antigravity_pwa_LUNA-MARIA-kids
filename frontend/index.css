@@ -21,6 +21,59 @@
     }
 }
 
+/* Ticker/Marquee Animation */
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 30s linear infinite;
+}
+
+/* Animated Gradient Text */
+@keyframes gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes float-gentle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.animated-gradient-text {
+    background: linear-gradient(-45deg, #6B5A53, #BBD4E8, #F5D8E8, #6B5A53);
+    background-size: 300% 300%;
+    animation: gradient-shift 6s ease infinite, float-gentle 4s ease-in-out infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* Custom Font Luna - Fallback to cursive for magical feel */
 .font-luna {
     font-family: 'Outfit', 'Inter', sans-serif;

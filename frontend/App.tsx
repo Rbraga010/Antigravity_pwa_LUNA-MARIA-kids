@@ -58,6 +58,7 @@ const App: React.FC = () => {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [selectedSize, setSelectedSize] = useState('4');
   const [selectedColor, setSelectedColor] = useState('Azul');
+  const [childrenProfiles, setChildrenProfiles] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -293,104 +294,166 @@ const App: React.FC = () => {
     );
   };
 
-  const MiniBenefitsGrid = () => (
-    <section className="flex flex-wrap items-center justify-center gap-4 lg:gap-12 px-6 py-4 bg-white/50 border-b border-gray-50 overflow-x-auto scrollbar-hide">
-      {[
-        { icon: Truck, t: 'FRETE GRÁTIS' },
-        { icon: CreditCard, t: 'ATÉ 10X' },
-        { icon: ShieldCheck, t: 'TROCA FÁCIL' },
-        { icon: RefreshCw, t: 'SITE SEGURO' }
-      ].map((b, i) => (
-        <div key={i} className="flex items-center gap-2 shrink-0">
-          <div className="p-1.5 bg-cream rounded-lg text-[#6B5A53]"><b.icon size={14} /></div>
-          <span className="text-[9px] font-black text-[#6B5A53] tracking-widest uppercase">{b.t}</span>
-          {i < 3 && <div className="hidden lg:block w-1.5 h-1.5 bg-gray-100 rounded-full ml-6"></div>}
+  const TickerBar = () => {
+    const items = [
+      { icon: Truck, t: 'FRETE GRÁTIS' },
+      { icon: CreditCard, t: 'ATÉ 10X' },
+      { icon: ShieldCheck, t: 'TROCA FÁCIL' },
+      { icon: RefreshCw, t: 'SITE SEGURO' },
+      { icon: Sparkles, t: 'LOJA MÁGICA' },
+      { icon: Moon, t: 'CLUBE DA LUNA' },
+      { icon: UsersIcon, t: 'FAMÍLIA INABALÁVEL' }
+    ];
+
+    // Duplicate items to ensure infinite scroll
+    const tickerItems = [...items, ...items, ...items];
+
+    return (
+      <section className="bg-white/80 backdrop-blur-sm border-b border-gray-100 py-3 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-12 lg:gap-24">
+          {tickerItems.map((b, i) => (
+            <div key={i} className="flex items-center gap-3 shrink-0">
+              <div className="p-1.5 bg-cream rounded-lg text-[#6B5A53]"><b.icon size={16} /></div>
+              <span className="text-[10px] lg:text-xs font-black text-[#6B5A53] tracking-widest uppercase">{b.t}</span>
+            </div>
+          ))}
         </div>
-      ))}
-    </section>
-  );
+      </section>
+    );
+  };
 
   const DifferentialsSection = () => (
-    <section className="px-6 lg:px-20 py-16 space-y-12">
-      <div className="text-center space-y-4">
-        <h2 className="text-2xl lg:text-4xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter italic">Conheça Nossos Diferenciais</h2>
-        <div className="h-1 w-20 bg-[#F5D8E8] mx-auto rounded-full"></div>
+    <section className="px-6 lg:px-20 py-24 space-y-16 bg-white">
+      <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter italic leading-tight">Nossos Diferenciais</h2>
+        <div className="h-1.5 w-24 bg-[#F5D8E8] mx-auto rounded-full"></div>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
         {[
-          { label: 'Loja Mágica', color: 'bg-blue-400', icon: Sparkles, section: AppSection.SHOP },
-          { label: 'Espaço Kid', color: 'bg-pink-400', icon: Gamepad2, section: AppSection.KIDS },
-          { label: 'Espaço Família', color: 'bg-orange-400', icon: UsersIcon, section: AppSection.HOME },
-          { label: 'Clube da Luna', color: 'bg-purple-400', icon: Moon, section: AppSection.SUBSCRIPTION }
+          {
+            icon: Sparkles,
+            t: 'LOJA MÁGICA',
+            sub: 'A única loja onde seu filho prova o amor antes de vestir.',
+            d: 'Primeiro e-commerce infantil do Brasil com provador virtual. Vista seu filho com magia antes da entrega.',
+            color: 'bg-blue-400',
+            section: AppSection.SHOP
+          },
+          {
+            icon: Gamepad2,
+            t: 'ESPAÇO KIDS',
+            sub: 'Diversão que educa. IA que entende a infância.',
+            d: 'Jogos criativos, desafios e desenhos com IA — sem tela vazia, sem culpa.',
+            color: 'bg-pink-400',
+            section: AppSection.KIDS
+          },
+          {
+            icon: UsersIcon,
+            t: 'ESPAÇO FAMÍLIA',
+            sub: 'Onde vínculos se fortalecem sem esforço.',
+            d: 'Atividades e rituais pra criar famílias inabaláveis. A Luna te ajuda a ser presente, mesmo na correria.',
+            color: 'bg-orange-400',
+            section: AppSection.HOME
+          },
+          {
+            icon: Moon,
+            t: 'CLUBE DA LUNA',
+            sub: 'Não é só uma caixa. É o momento que seu filho vai lembrar pra sempre.',
+            d: 'Assinatura mensal com roupas, mimos e conexão. Todo mês, um ritual de afeto em família.',
+            color: 'bg-purple-400',
+            section: AppSection.SUBSCRIPTION
+          }
         ].map((diff, i) => (
           <div
             key={i}
             onClick={() => diff.section && navigateTo(diff.section)}
-            className={`${diff.color} p-6 lg:p-10 rounded-[40px] shadow-xl text-white flex flex-col items-center justify-center text-center gap-4 group cursor-pointer active:scale-95 transition-all`}
+            className="group cursor-pointer space-y-6"
           >
-            <div className="p-4 bg-white/20 rounded-full group-hover:scale-110 transition-transform"><diff.icon size={32} /></div>
-            <span className="font-black text-[11px] lg:text-xs uppercase tracking-widest">{diff.label}</span>
+            <div className={`${diff.color} aspect-[4/3] rounded-[48px] shadow-xl flex items-center justify-center text-white transition-all group-hover:scale-[1.02] group-hover:shadow-2xl overflow-hidden relative`}>
+              <diff.icon size={64} className="relative z-10 opacity-90" />
+              <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+            <div className="space-y-3 px-2">
+              <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase tracking-tight italic flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#BBD4E8]"></span>
+                {diff.t}
+              </h3>
+              <p className="text-sm font-black text-[#6B5A53] leading-snug italic">{diff.sub}</p>
+              <p className="text-xs font-bold text-gray-400 leading-relaxed italic">{diff.d}</p>
+            </div>
           </div>
         ))}
       </div>
     </section>
   );
 
-  const HomeHero = () => (
-    <section className="px-6 lg:px-20 py-12 lg:py-24 bg-cream flex flex-col lg:flex-row gap-12 lg:gap-20 items-center overflow-hidden">
-      <div className="flex-1 space-y-8">
-        <h1 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase leading-tight italic tracking-tighter">
-          Bem-vindo ao único lugar onde seu filho é o protagonista de um mundo encantado — todo mês.
-        </h1>
-        <p className="text-base lg:text-xl font-bold text-gray-500 italic max-w-xl leading-relaxed">
-          Aqui, cada entrega não traz só produtos. Traz o tipo de lembrança que você vai ver nas fotos do futuro.
-        </p>
-      </div>
+  const HomeHero = () => {
+    const toggleProfile = (p: string) => {
+      setChildrenProfiles(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+    };
 
-      <div className="w-full lg:max-w-md bg-white p-8 lg:p-10 rounded-[48px] shadow-2xl border border-pink-50 relative">
-        <div className="space-y-6">
-          <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic text-center">Entre para o Mundo Mágico</h3>
-          <div className="space-y-4 text-left">
-            <input type="text" placeholder="Seu Nome" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
-            <input type="email" placeholder="E-mail" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
-            <input type="tel" placeholder="Telefone" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+    return (
+      <section className="px-6 lg:px-20 py-12 lg:py-24 bg-cream flex flex-col lg:flex-row gap-12 lg:gap-20 items-center overflow-hidden">
+        <div className="flex-1 space-y-8">
+          <h1 className="text-3xl lg:text-6xl font-black uppercase leading-tight italic tracking-tighter animated-gradient-text font-luna">
+            Bem-vindo ao único lugar onde seu filho é o protagonista de um mundo encantado — todo mês.
+          </h1>
+          <p className="text-base lg:text-xl font-bold text-gray-500 italic max-w-xl leading-relaxed">
+            Aqui, cada entrega não traz só produtos. Traz o tipo de lembrança que você vai ver nas fotos do futuro.
+          </p>
+        </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <select className="px-4 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none">
-                <option>Filhos?</option>
-                <option>1</option>
-                <option>2</option>
-                <option>3+</option>
-              </select>
-              <select className="px-4 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none">
-                <option>Papel?</option>
-                <option>Mãe</option>
-                <option>Pai</option>
-                <option>Os dois</option>
-              </select>
+        <div className="w-full lg:max-w-md bg-white p-8 lg:p-10 rounded-[48px] shadow-2xl border border-pink-50 relative">
+          <div className="space-y-6">
+            <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic text-center">Entre para o Mundo Mágico</h3>
+            <div className="space-y-4 text-left">
+              <input type="text" placeholder="Seu Nome" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+              <input type="email" placeholder="E-mail" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+              <input type="tel" placeholder="Telefone" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+
+              <div className="grid grid-cols-2 gap-4">
+                <select className="px-4 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none lg:text-center">
+                  <option>Quantos Filhos?</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3+</option>
+                </select>
+                <select className="px-4 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none">
+                  <option>Você é?</option>
+                  <option>Mãe</option>
+                  <option>Pai</option>
+                  <option>Os dois</option>
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Perfil dos Filhos (Selecione todos):</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Menino', 'Menina', 'Bebê', 'Gêmeos'].map(p => (
+                    <button
+                      key={p}
+                      onClick={() => toggleProfile(p)}
+                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${childrenProfiles.includes(p) ? 'bg-[#BBD4E8] text-white shadow-md' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button className="w-full py-5 bg-pink-400 text-white rounded-[28px] font-black uppercase text-xs tracking-widest shadow-lg shadow-pink-200 hover:scale-[1.02] active:scale-95 transition-all mt-6">
+                Quero Participar ✨
+              </button>
             </div>
-
-            <select className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none">
-              <option>Perfil dos Filhos</option>
-              <option>Menino</option>
-              <option>Menina</option>
-              <option>Bebê</option>
-              <option>Todos</option>
-            </select>
-
-            <button className="w-full py-5 bg-pink-400 text-white rounded-[28px] font-black uppercase text-xs tracking-widest shadow-lg shadow-pink-200 hover:scale-[1.02] active:scale-95 transition-all">
-              Quero Participar ✨
-            </button>
           </div>
         </div>
-      </div>
-    </section>
-  );
+      </section>
+    );
+  };
 
   const DepartmentCarousel = ({ id, title, products }: { id: string, title: string, products: Product[] }) => (
     <section id={id} className="px-6 lg:px-20 py-12 space-y-8 overflow-hidden">
       <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-        <h2 className="text-xl lg:text-2xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">{title}</h2>
         <button onClick={() => navigateTo(AppSection.SHOP)} className="text-[10px] font-black uppercase tracking-widest text-[#BBD4E8] hover:text-[#6B5A53] transition-colors">Ver Tudo</button>
       </div>
       <Swiper
@@ -864,7 +927,7 @@ const App: React.FC = () => {
       <TopBar />
       <Header />
       <MobileSearch />
-      <MiniBenefitsGrid />
+      <TickerBar />
 
       <Sidebar />
 
