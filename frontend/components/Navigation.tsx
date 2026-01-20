@@ -6,15 +6,15 @@ import { AppSection } from '../types';
 interface NavigationProps {
   currentSection: AppSection;
   onNavigate: (section: AppSection) => void;
+  onClubeClick: () => void;
   cartCount: number;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, cartCount }) => {
+const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, onClubeClick, cartCount }) => {
   const navItems = [
     { id: AppSection.HOME, label: 'Início', icon: Home, color: 'text-blue-400' },
     { id: AppSection.SHOP, label: 'Loja Mágica', icon: ShoppingBag, color: 'text-purple-400' },
-    { id: AppSection.SUBSCRIPTION, label: 'Clube', icon: Heart, color: 'text-pink-400' },
-    { id: AppSection.KIDS, label: 'Kids', icon: Gamepad2, color: 'text-orange-400' },
+    { id: 'CLUBE', label: 'Clube', icon: Heart, color: 'text-pink-400', onClick: onClubeClick },
   ];
 
   return (
@@ -22,7 +22,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, car
       {navItems.map((item) => (
         <button
           key={item.id}
-          onClick={() => onNavigate(item.id)}
+          onClick={() => item.onClick ? item.onClick() : onNavigate(item.id as AppSection)}
           className={`flex flex-col items-center gap-1 transition-all ${currentSection === item.id ? 'scale-110 ' + item.color : 'text-gray-300 hover:text-gray-500'
             }`}
         >

@@ -23,7 +23,7 @@ import 'swiper/css/navigation';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || "dummy-key" });
 
-const LOGO_URL = "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696e918f65acf041fba6c97f.png";
+const LOGO_URL = "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696ed4b28ec5c998d1d2d5e6.png";
 const CLUB_URL = "https://publicado-p-gina-clubeda-luna.vercel.app/";
 
 const CLUB_IMAGES = {
@@ -65,7 +65,7 @@ const App: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [mascotMsg, setMascotMsg] = useState('Bem-vindo ao mundo da Luna Maria!');
+  const [mascotMsg, setMascotMsg] = useState('Bem vinda ao mundo da Luna');
 
   const generateTryOn = async (base64Image: string, product: Product) => {
     try {
@@ -299,13 +299,14 @@ const App: React.FC = () => {
 
   const TickerBar = () => {
     const items = [
-      { icon: Truck, t: 'FRETE GRÁTIS' },
-      { icon: CreditCard, t: 'ATÉ 10X' },
-      { icon: ShieldCheck, t: 'TROCA FÁCIL' },
-      { icon: RefreshCw, t: 'SITE SEGURO' },
       { icon: Sparkles, t: 'LOJA MÁGICA' },
       { icon: Moon, t: 'CLUBE DA LUNA' },
-      { icon: UsersIcon, t: 'FAMÍLIA INABALÁVEL' }
+      { icon: UsersIcon, t: 'ESPAÇO FAMILIA' },
+      { icon: Truck, t: 'FRETE GRÁTIS*' },
+      { icon: CreditCard, t: 'ATÉ 10X*' },
+      { icon: ShieldCheck, t: 'TROCA FÁCIL' },
+      { icon: RefreshCw, t: 'SITE SEGURO' },
+      { icon: Heart, t: 'OS KIDS AMAM' }
     ];
 
     // Duplicate items to ensure infinite scroll
@@ -522,8 +523,11 @@ const App: React.FC = () => {
 
   const DepartmentCarousel = ({ id, title, products }: { id: string, title: string, products: Product[] }) => (
     <section id={id} className="px-6 lg:px-20 py-12 space-y-8 overflow-hidden">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-        <button onClick={() => navigateTo(AppSection.SHOP)} className="text-[10px] font-black uppercase tracking-widest text-[#BBD4E8] hover:text-[#6B5A53] transition-colors">Ver Tudo</button>
+      <div className="space-y-4 border-b border-gray-100 pb-4">
+        <h2 className="text-xl lg:text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">{title}</h2>
+        <div className="flex justify-end">
+          <button onClick={() => navigateTo(AppSection.SHOP)} className="text-[10px] font-black uppercase tracking-widest text-[#BBD4E8] hover:text-[#6B5A53] transition-colors">Ver Tudo</button>
+        </div>
       </div>
       <Swiper
         modules={[Autoplay, SwiperNavigation]}
@@ -1071,7 +1075,12 @@ const App: React.FC = () => {
       )}
 
       <Mascot message={mascotMsg} />
-      <Navigation currentSection={section} onNavigate={navigateTo} cartCount={cart.length} />
+      <Navigation
+        currentSection={section}
+        onNavigate={navigateTo}
+        onClubeClick={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }}
+        cartCount={cart.length}
+      />
     </div>
   );
 };
