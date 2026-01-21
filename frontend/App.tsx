@@ -38,9 +38,9 @@ const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState<UserProfile>({
-    name: 'Família Luna',
-    email: 'admin@lunamaria.com',
-    role: 'SUPER_ADMIN', // Para desenvolvimento, iniciamos como Super Admin
+    name: 'Visitante',
+    email: '',
+    role: 'USER', // Iniciamos como usuário comum - login via modal
     tokens: 10,
     medals: ['Iniciante'],
     drawingsCompleted: 0,
@@ -72,15 +72,87 @@ const App: React.FC = () => {
   const [featuredCarousel, setFeaturedCarousel] = useState<CarouselItem[]>([]);
   const [kidsMaterials, setKidsMaterials] = useState<ContentMaterial[]>([]);
   const [familyMaterials, setFamilyMaterials] = useState<ContentMaterial[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isAdminEditing, setIsAdminEditing] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingCarouselItem, setEditingCarouselItem] = useState<CarouselItem | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<ContentMaterial | null>(null);
   const [sortOption, setSortOption] = useState<'default' | 'price_asc' | 'price_desc' | 'newest'>('default');
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [mascotMsg, setMascotMsg] = useState('Bem vinda ao mundo da Luna');
+
+  // API Helper
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+  };
+
+  // Load initial data and check authentication
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Check authentication
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          const userRes = await fetch('/api/auth/me', {
+            headers: getAuthHeaders()
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            setUser(prev => ({ ...prev, ...userData }));
+          } else {
+            localStorage.removeItem('authToken');
+          }
+        }
+
+        // Load products (public)
+        const productsRes = await fetch('/api/products');
+        if (productsRes.ok) {
+          const productsData = await productsRes.json();
+          setProducts(productsData);
+        } else {
+          // Fallback to INITIAL_PRODUCTS if API fails
+          setProducts(INITIAL_PRODUCTS);
+        }
+
+        // Load carousels and content (try to load, fallback to empty if not available)
+        try {
+          const carouselsRes = await fetch('/api/admin/carousels', {
+            headers: getAuthHeaders()
+          });
+          if (carouselsRes.ok) {
+            const carouselsData = await carouselsRes.json();
+            setTopCarousel(carouselsData.filter((c: CarouselItem) => c.type === 'TOP'));
+            setFeaturedCarousel(carouselsData.filter((c: CarouselItem) => c.type === 'FEATURED'));
+          }
+        } catch (e) {
+          // Not critical, carousels will be empty
+        }
+
+        try {
+          const materialsRes = await fetch('/api/admin/content', {
+            headers: getAuthHeaders()
+          });
+          if (materialsRes.ok) {
+            const materialsData = await materialsRes.json();
+            setKidsMaterials(materialsData.filter((m: ContentMaterial) => m.section === 'KIDS'));
+            setFamilyMaterials(materialsData.filter((m: ContentMaterial) => m.section === 'FAMILY'));
+          }
+        } catch (e) {
+          // Not critical, materials will be empty
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        // Fallback to hardcoded products
+        setProducts(INITIAL_PRODUCTS);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const generateTryOn = async (base64Image: string, product: Product) => {
     try {
@@ -164,6 +236,216 @@ const App: React.FC = () => {
       'menino-kids': 'object-center'
     };
     return adjustments[category] || 'object-center';
+  };
+
+  // API Handlers for Admin Operations
+  const handleSaveProduct = async (productData: Product) => {
+    try {
+      setLoading(true);
+      const method = productData.id ? 'PATCH' : 'POST';
+      const url = productData.id ? `/api/admin/products/${productData.id}` : '/api/admin/products';
+
+      const response = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(productData)
+      });
+
+      if (response.ok) {
+        const savedProduct = await response.json();
+        setProducts(prev => {
+          const index = prev.findIndex(p => p.id === savedProduct.id);
+          if (index >= 0) {
+            const updated = [...prev];
+            updated[index] = savedProduct;
+            return updated;
+          }
+          return [...prev, savedProduct];
+        });
+        setEditingProduct(null);
+        setMascotMsg('Produto salvo com sucesso! ✨');
+      } else {
+        setMascotMsg('Erro ao salvar produto. Tente novamente.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao salvar produto.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        setProducts(prev => prev.filter(p => p.id !== productId));
+        setEditingProduct(null);
+        setMascotMsg('Produto excluído com sucesso!');
+      } else {
+        setMascotMsg('Erro ao excluir produto.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao excluir produto.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveCarousel = async (carouselData: CarouselItem) => {
+    try {
+      setLoading(true);
+      const method = carouselData.id ? 'PATCH' : 'POST';
+      const url = carouselData.id ? `/api/admin/carousels/${carouselData.id}` : '/api/admin/carousels';
+
+      const response = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(carouselData)
+      });
+
+      if (response.ok) {
+        const savedCarousel = await response.json();
+        if (savedCarousel.type === 'TOP') {
+          setTopCarousel(prev => {
+            const index = prev.findIndex(c => c.id === savedCarousel.id);
+            if (index >= 0) {
+              const updated = [...prev];
+              updated[index] = savedCarousel;
+              return updated;
+            }
+            return [...prev, savedCarousel];
+          });
+        } else {
+          setFeaturedCarousel(prev => {
+            const index = prev.findIndex(c => c.id === savedCarousel.id);
+            if (index >= 0) {
+              const updated = [...prev];
+              updated[index] = savedCarousel;
+              return updated;
+            }
+            return [...prev, savedCarousel];
+          });
+        }
+        setEditingCarouselItem(null);
+        setMascotMsg('Banner salvo com sucesso! ✨');
+      } else {
+        setMascotMsg('Erro ao salvar banner.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao salvar banner.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCarousel = async (carouselId: string, type: 'TOP' | 'FEATURED') => {
+    if (!confirm('Tem certeza que deseja excluir este banner?')) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/carousels/${carouselId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        if (type === 'TOP') {
+          setTopCarousel(prev => prev.filter(c => c.id !== carouselId));
+        } else {
+          setFeaturedCarousel(prev => prev.filter(c => c.id !== carouselId));
+        }
+        setEditingCarouselItem(null);
+        setMascotMsg('Banner excluído com sucesso!');
+      } else {
+        setMascotMsg('Erro ao excluir banner.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao excluir banner.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveMaterial = async (materialData: ContentMaterial) => {
+    try {
+      setLoading(true);
+      const method = materialData.id ? 'PATCH' : 'POST';
+      const url = materialData.id ? `/api/admin/content/${materialData.id}` : '/api/admin/content';
+
+      const response = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(materialData)
+      });
+
+      if (response.ok) {
+        const savedMaterial = await response.json();
+        if (savedMaterial.section === 'KIDS') {
+          setKidsMaterials(prev => {
+            const index = prev.findIndex(m => m.id === savedMaterial.id);
+            if (index >= 0) {
+              const updated = [...prev];
+              updated[index] = savedMaterial;
+              return updated;
+            }
+            return [...prev, savedMaterial];
+          });
+        } else {
+          setFamilyMaterials(prev => {
+            const index = prev.findIndex(m => m.id === savedMaterial.id);
+            if (index >= 0) {
+              const updated = [...prev];
+              updated[index] = savedMaterial;
+              return updated;
+            }
+            return [...prev, savedMaterial];
+          });
+        }
+        setEditingMaterial(null);
+        setMascotMsg('Material salvo com sucesso! ✨');
+      } else {
+        setMascotMsg('Erro ao salvar material.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao salvar material.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteMaterial = async (materialId: string, section: 'KIDS' | 'FAMILY') => {
+    if (!confirm('Tem certeza que deseja excluir este material?')) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/content/${materialId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        if (section === 'KIDS') {
+          setKidsMaterials(prev => prev.filter(m => m.id !== materialId));
+        } else {
+          setFamilyMaterials(prev => prev.filter(m => m.id !== materialId));
+        }
+        setEditingMaterial(null);
+        setMascotMsg('Material excluído com sucesso!');
+      } else {
+        setMascotMsg('Erro ao excluir material.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao excluir material.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addToCart = (product: Product) => {
@@ -312,28 +594,43 @@ const App: React.FC = () => {
   };
 
   const AutoCarousel = () => {
-    const banners = [
-      { img: '/banner_magic.png', title: 'Mundo Mágico', sub: 'Roupas que encantam.' },
-      { img: '/banner_club.png', title: 'Clube Luna', sub: 'Momentos únicos.' },
-      { img: '/banner_offers.png', title: 'Lua de Ofertas', sub: 'Descontos especiais.' }
+    const bannersToDisplay = topCarousel.length > 0 ? topCarousel : [
+      { id: '1', image_url: '/banner_magic.png', title: 'Mundo Mágico', subtitle: 'Roupas que encantam.', type: 'TOP' as const, order: 0 },
+      { id: '2', image_url: '/banner_club.png', title: 'Clube Luna', subtitle: 'Momentos únicos.', type: 'TOP' as const, order: 1 },
+      { id: '3', image_url: '/banner_offers.png', title: 'Lua de Ofertas', subtitle: 'Descontos especiais.', type: 'TOP' as const, order: 2 }
     ];
 
     return (
       <section className="relative w-full aspect-[21/9] lg:aspect-[3/1] overflow-hidden">
+        {isAdminEditing && (
+          <button
+            onClick={() => setEditingCarouselItem({ id: '', image_url: '', type: 'TOP', order: topCarousel.length } as CarouselItem)}
+            className="absolute top-4 right-4 z-50 bg-pink-400 text-white p-4 rounded-full shadow-xl hover:scale-110 active:scale-90 transition-all"
+          >
+            <Plus size={20} />
+          </button>
+        )}
         <Swiper
           modules={[Autoplay, Pagination, SwiperNavigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           pagination={{ clickable: true }}
           navigation={true}
-          loop={true}
+          loop={bannersToDisplay.length > 1}
           className="w-full h-full"
         >
-          {banners.map((b, i) => (
-            <SwiperSlide key={i}>
+          {bannersToDisplay.map((b) => (
+            <SwiperSlide key={b.id}>
               <div className="relative w-full h-full group">
-                <img src={b.img} alt={b.title} className="w-full h-full object-cover" />
+                <img src={b.image_url} alt={b.title || 'Banner'} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/10"></div>
-                {/* Optional overlay text if wanted, but banners usually have it baked in */}
+                {isAdminEditing && (
+                  <button
+                    onClick={() => setEditingCarouselItem(b)}
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-white/90 backdrop-blur-sm text-pink-400 p-6 rounded-full shadow-2xl transition-opacity"
+                  >
+                    <Edit3 size={24} />
+                  </button>
+                )}
               </div>
             </SwiperSlide>
           ))}
@@ -800,6 +1097,115 @@ const App: React.FC = () => {
     </div>
   );
 
+  const LoginModal = () => (
+    <div className={`fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 transition-all ${showLoginModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative scrollbar-hide">
+        <button onClick={() => setShowLoginModal(false)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
+
+        {user.email ? (
+          // User is logged in - show profile
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-black">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">{user.name}</h3>
+              <p className="text-xs font-bold text-gray-400">{user.email}</p>
+              {user.role === 'SUPER_ADMIN' && (
+                <div className="inline-flex items-center gap-2 bg-pink-50 px-4 py-2 rounded-full">
+                  <ShieldCheck size={16} className="text-pink-400" />
+                  <span className="text-[10px] font-black text-pink-400 uppercase tracking-widest">Super Admin</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <button onClick={() => navigateTo(AppSection.REWARDS)} className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <ClipboardList size={20} className="text-[#6B5A53]" />
+                <span className="text-sm font-black text-[#6B5A53]">Meus Pedidos</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  localStorage.removeItem('authToken');
+                  setUser({ name: 'Visitante', role: 'USER', tokens: 0, medals: [], drawingsCompleted: 0, coupons: [] });
+                  setShowLoginModal(false);
+                  setMascotMsg('Até logo! Volte sempre! 👋');
+                }}
+                className="w-full flex items-center justify-center gap-3 p-4 bg-red-50 rounded-2xl hover:bg-red-100 transition-colors text-red-400"
+              >
+                <span className="text-sm font-black">Sair</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          // User not logged in - show login form
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Entrar na Conta ✨</h3>
+              <p className="text-xs font-bold text-gray-400 italic">Acesse sua conta Luna Maria Kids</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Email</label>
+                <input id="login-email" type="email" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="seu@email.com" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Senha</label>
+                <input id="login-password" type="password" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="••••••••" />
+              </div>
+
+              <button
+                onClick={async () => {
+                  const email = (document.querySelector('#login-email') as HTMLInputElement)?.value;
+                  const password = (document.querySelector('#login-password') as HTMLInputElement)?.value;
+
+                  if (!email || !password) {
+                    setMascotMsg('Preencha email e senha!');
+                    return;
+                  }
+
+                  try {
+                    setLoading(true);
+                    const response = await fetch('/api/auth/login', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email, password })
+                    });
+
+                    if (response.ok) {
+                      const { token, user: userData } = await response.json();
+                      localStorage.setItem('authToken', token);
+                      setUser(prev => ({ ...prev, ...userData }));
+                      setShowLoginModal(false);
+                      setMascotMsg(`Bem-vinda de volta, ${userData.name}! ✨`);
+                    } else {
+                      setMascotMsg('Email ou senha incorretos.');
+                    }
+                  } catch (error) {
+                    setMascotMsg('Erro ao fazer login. Tente novamente.');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+              >
+                {loading ? 'Entrando...' : 'Entrar ✨'}
+              </button>
+            </div>
+
+            <div className="text-center">
+              <p className="text-[10px] font-bold text-gray-400">Não tem uma conta? <span className="text-pink-400 cursor-pointer hover:underline">Cadastre-se</span></p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   const AdminModals = () => {
     if (!isAdminEditing) return null;
 
@@ -842,23 +1248,23 @@ const App: React.FC = () => {
                 <div className="space-y-6">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Nome do Produto</label>
-                    <input type="text" defaultValue={editingProduct.name} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Ex: Vestido Nuvem Mágica" />
+                    <input id="product-name" type="text" defaultValue={editingProduct.name} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Ex: Vestido Nuvem Mágica" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Atual</label>
-                      <input type="number" defaultValue={editingProduct.price} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="129.90" />
+                      <input id="product-price" type="number" defaultValue={editingProduct.price} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="129.90" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Antigo (Promo)</label>
-                      <input type="number" defaultValue={editingProduct.oldPrice} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="189.90" />
+                      <input id="product-old-price" type="number" defaultValue={editingProduct.oldPrice} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="189.90" />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Categoria</label>
-                    <select defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
+                    <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
                       <option value="menina-bebe">Menina Bebê</option>
                       <option value="menina-kids">Menina Kids</option>
                       <option value="menino-bebe">Menino Bebê</option>
@@ -869,14 +1275,40 @@ const App: React.FC = () => {
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Ordem de Exibição (0 = Início)</label>
-                    <input type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
+                    <input id="product-order" type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
                   </div>
                 </div>
               </div>
 
               <div className="pt-6 flex gap-4">
-                <button className="flex-1 bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Salvar Alterações ✨</button>
-                <button className="px-8 bg-red-50 text-red-400 rounded-[28px] font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-colors">Excluir</button>
+                <button
+                  onClick={() => {
+                    const formData = {
+                      id: editingProduct.id,
+                      name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name,
+                      price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
+                      oldPrice: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
+                      category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category,
+                      displayOrder: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
+                      image: editingProduct.image,
+                      description: editingProduct.description
+                    };
+                    handleSaveProduct(formData);
+                  }}
+                  disabled={loading}
+                  className="flex-1 bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Salvar Alterações ✨'}
+                </button>
+                {editingProduct.id && (
+                  <button
+                    onClick={() => handleDeleteProduct(editingProduct.id)}
+                    disabled={loading}
+                    className="px-8 bg-red-50 text-red-400 rounded-[28px] font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-colors disabled:opacity-50"
+                  >
+                    Excluir
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -1059,8 +1491,8 @@ const App: React.FC = () => {
             {[
               { label: 'Início', icon: Home, section: AppSection.HOME },
               { label: 'Loja Mágica', icon: ShoppingBag, section: AppSection.SHOP },
-              { label: 'Espaço Kids', icon: Gamepad2, onClick: () => setShowConstructionPopup(true) },
-              { label: 'Espaço Família', icon: UsersIcon, onClick: () => setShowConstructionPopup(true) },
+              { label: 'Espaço Kids', icon: Gamepad2, section: AppSection.KIDS },
+              { label: 'Espaço Família', icon: UsersIcon, section: AppSection.FAMILY_MOMENT },
               { label: 'Clube da Luna', icon: Heart, onClick: () => { setIframeUrl(CLUB_URL); setShowIframeModal(true); } },
             ].map((item, i) => (
               <button
@@ -1074,21 +1506,26 @@ const App: React.FC = () => {
             ))}
 
             <div className="py-2">
-              <div className="flex items-center gap-4 p-4 text-gray-500 font-bold text-sm">
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="w-full flex items-center gap-4 p-4 text-gray-500 font-bold text-sm hover:bg-gray-50 rounded-2xl transition-colors"
+              >
                 <User size={20} className="text-gray-300" />
                 <span>Minha Conta</span>
-              </div>
-              <div className="pl-12 space-y-1">
-                <button
-                  onClick={() => navigateTo(AppSection.REWARDS)}
-                  className={`w-full text-left p-3 rounded-xl text-xs font-bold ${section === AppSection.REWARDS ? 'bg-[#BBD4E8]/10 text-[#6B5A53]' : 'text-gray-400 hover:bg-gray-50'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <ClipboardList size={16} />
-                    Meus Pedidos
-                  </div>
-                </button>
-              </div>
+              </button>
+              {user.email && (
+                <div className="pl-12 space-y-1">
+                  <button
+                    onClick={() => navigateTo(AppSection.REWARDS)}
+                    className={`w-full text-left p-3 rounded-xl text-xs font-bold ${section === AppSection.REWARDS ? 'bg-[#BBD4E8]/10 text-[#6B5A53]' : 'text-gray-400 hover:bg-gray-50'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <ClipboardList size={16} />
+                      Meus Pedidos
+                    </div>
+                  </button>
+                </div>
+              )}
             </div>
 
             <button
@@ -1167,7 +1604,7 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="offers"
           title="🌙 Ofertas do Dia"
-          products={getSortedProducts(INITIAL_PRODUCTS)}
+          products={getSortedProducts(products)}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1176,14 +1613,14 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="menina-bebe"
           title="🎀 Menina Bebê"
-          products={getSortedProducts(INITIAL_PRODUCTS)}
+          products={getSortedProducts(products)}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="menina-kids"
           title="🎀 Menina Kids"
-          products={getSortedProducts(INITIAL_PRODUCTS)}
+          products={getSortedProducts(products)}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1192,14 +1629,14 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="menino-bebe"
           title="🚀 Menino Bebê"
-          products={getSortedProducts([...INITIAL_PRODUCTS].reverse())}
+          products={getSortedProducts([...products].reverse())}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="menino-kids"
           title="🚀 Menino Kids"
-          products={getSortedProducts([...INITIAL_PRODUCTS].reverse())}
+          products={getSortedProducts([...products].reverse())}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1207,14 +1644,14 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="acessorios"
           title="✨ Acessórios"
-          products={getSortedProducts(INITIAL_PRODUCTS)}
+          products={getSortedProducts(products)}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="complementos"
           title="🎁 Complementos"
-          products={getSortedProducts([...INITIAL_PRODUCTS].reverse())}
+          products={getSortedProducts([...products].reverse())}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1227,7 +1664,7 @@ const App: React.FC = () => {
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-          {INITIAL_PRODUCTS.map(product => (
+          {products.map(product => (
             <ProductCard key={product.id} product={product} onTryOn={(p) => { setSelectedProduct(p); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }} />
           ))}
         </div>
@@ -1495,6 +1932,7 @@ const App: React.FC = () => {
       )}
 
       {showHomeTryOnInfo && renderHomeTryOnPopup()}
+      <LoginModal />
 
       {/* Construction Popup */}
       {showConstructionPopup && (
