@@ -79,6 +79,7 @@ const App: React.FC = () => {
   const [editingMaterial, setEditingMaterial] = useState<ContentMaterial | null>(null);
   const [sortOption, setSortOption] = useState<'default' | 'price_asc' | 'price_desc' | 'newest'>('default');
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -1139,67 +1140,166 @@ const App: React.FC = () => {
             </div>
           </div>
         ) : (
-          // User not logged in - show login form
+          // User not logged in - show tabs
           <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Entrar na Conta ✨</h3>
-              <p className="text-xs font-bold text-gray-400 italic">Acesse sua conta Luna Maria Kids</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Email</label>
-                <input id="login-email" type="email" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="seu@email.com" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Senha</label>
-                <input id="login-password" type="password" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="••••••••" />
-              </div>
-
+            {/* Tabs */}
+            <div className="flex gap-2 bg-gray-50 p-1 rounded-3xl">
               <button
-                onClick={async () => {
-                  const email = (document.querySelector('#login-email') as HTMLInputElement)?.value;
-                  const password = (document.querySelector('#login-password') as HTMLInputElement)?.value;
-
-                  if (!email || !password) {
-                    setMascotMsg('Preencha email e senha!');
-                    return;
-                  }
-
-                  try {
-                    setLoading(true);
-                    const response = await fetch('/api/auth/login', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, password })
-                    });
-
-                    if (response.ok) {
-                      const { token, user: userData } = await response.json();
-                      localStorage.setItem('authToken', token);
-                      setUser(prev => ({ ...prev, ...userData }));
-                      setShowLoginModal(false);
-                      setMascotMsg(`Bem-vinda de volta, ${userData.name}! ✨`);
-                    } else {
-                      setMascotMsg('Email ou senha incorretos.');
-                    }
-                  } catch (error) {
-                    setMascotMsg('Erro ao fazer login. Tente novamente.');
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                disabled={loading}
-                className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                onClick={() => setActiveTab('login')}
+                className={`flex-1 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'login' ? 'bg-white text-[#6B5A53] shadow-sm' : 'text-gray-400'}`}
               >
-                {loading ? 'Entrando...' : 'Entrar ✨'}
+                Entrar
+              </button>
+              <button
+                onClick={() => setActiveTab('register')}
+                className={`flex-1 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'register' ? 'bg-white text-[#6B5A53] shadow-sm' : 'text-gray-400'}`}
+              >
+                Cadastrar
               </button>
             </div>
 
-            <div className="text-center">
-              <p className="text-[10px] font-bold text-gray-400">Não tem uma conta? <span className="text-pink-400 cursor-pointer hover:underline">Cadastre-se</span></p>
-            </div>
+            {activeTab === 'login' ? (
+              // Login Form
+              <div className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Entrar na Conta ✨</h3>
+                  <p className="text-xs font-bold text-gray-400 italic">Acesse sua conta Luna Maria Kids</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Email</label>
+                    <input id="login-email" type="email" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="seu@email.com" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Senha</label>
+                    <input id="login-password" type="password" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="••••••••" />
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      const email = (document.querySelector('#login-email') as HTMLInputElement)?.value;
+                      const password = (document.querySelector('#login-password') as HTMLInputElement)?.value;
+
+                      if (!email || !password) {
+                        setMascotMsg('Preencha email e senha!');
+                        return;
+                      }
+
+                      try {
+                        setLoading(true);
+                        const response = await fetch('/api/auth/login', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email, password })
+                        });
+
+                        if (response.ok) {
+                          const { token, user: userData } = await response.json();
+                          localStorage.setItem('authToken', token);
+                          setUser(prev => ({ ...prev, ...userData }));
+                          setShowLoginModal(false);
+                          setMascotMsg(`Bem-vinda de volta, ${userData.name}! ✨`);
+                        } else {
+                          setMascotMsg('Email ou senha incorretos.');
+                        }
+                      } catch (error) {
+                        setMascotMsg('Erro ao fazer login. Tente novamente.');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                    className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'Entrando...' : 'Entrar ✨'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Register Form
+              <div className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Criar Conta ✨</h3>
+                  <p className="text-xs font-bold text-gray-400 italic">Junte-se à família Luna Maria</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Nome Completo</label>
+                    <input id="register-name" type="text" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Maria Silva" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Email</label>
+                    <input id="register-email" type="email" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="seu@email.com" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Senha</label>
+                    <input id="register-password" type="password" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Mínimo 6 caracteres" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Confirmar Senha</label>
+                    <input id="register-password-confirm" type="password" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Digite novamente" />
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      const name = (document.querySelector('#register-name') as HTMLInputElement)?.value;
+                      const email = (document.querySelector('#register-email') as HTMLInputElement)?.value;
+                      const password = (document.querySelector('#register-password') as HTMLInputElement)?.value;
+                      const passwordConfirm = (document.querySelector('#register-password-confirm') as HTMLInputElement)?.value;
+
+                      if (!name || !email || !password || !passwordConfirm) {
+                        setMascotMsg('Preencha todos os campos!');
+                        return;
+                      }
+
+                      if (password !== passwordConfirm) {
+                        setMascotMsg('As senhas não coincidem!');
+                        return;
+                      }
+
+                      if (password.length < 6) {
+                        setMascotMsg('Senha deve ter no mínimo 6 caracteres!');
+                        return;
+                      }
+
+                      try {
+                        setLoading(true);
+                        const response = await fetch('/api/auth/register', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ name, email, password })
+                        });
+
+                        if (response.ok) {
+                          const { token, user: userData } = await response.json();
+                          localStorage.setItem('authToken', token);
+                          setUser(prev => ({ ...prev, ...userData }));
+                          setShowLoginModal(false);
+                          setMascotMsg(`Bem-vinda à família Luna Maria, ${userData.name}! ✨`);
+                        } else {
+                          const errorData = await response.json();
+                          setMascotMsg(errorData.message || 'Erro ao criar conta.');
+                        }
+                      } catch (error) {
+                        setMascotMsg('Erro ao criar conta. Tente novamente.');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                    className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'Criando...' : 'Criar Conta ✨'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
