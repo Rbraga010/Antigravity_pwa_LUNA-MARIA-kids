@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 export const register = async (req: Request, res: Response) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, phone, numChildren, childrenDetails } = req.body;
 
         const userExists = await prisma.user.findUnique({ where: { email } });
         if (userExists) {
@@ -17,7 +17,20 @@ export const register = async (req: Request, res: Response) => {
         const password_hash = await bcrypt.hash(password, 10);
 
         const user = await prisma.user.create({
-            data: { name, email, password_hash },
+            data: {
+                name,
+                email,
+                password_hash,
+                phone,
+                num_children: numChildren,
+                children: {
+                    create: childrenDetails?.map((child: any) => ({
+                        name: child.name,
+                        birth_date: new Date(child.birthDate)
+                    }))
+                }
+            },
+            include: { children: true }
         });
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });

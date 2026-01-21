@@ -10,7 +10,7 @@ import {
   Users as UsersIcon, ShieldCheck, User, X, Check, AlertCircle, Zap,
   ArrowLeft, RefreshCw, Smartphone, CreditCard, Menu, Eye, Lock,
   Settings2, CheckCircle2, Trophy, HelpCircle, ClipboardList, Truck, Star as StarIcon, ChevronLeft,
-  Facebook, Instagram, Twitter, Search, ShoppingCart
+  Facebook, Instagram, Twitter, Search, ShoppingCart, Home, MessageCircle
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -60,6 +60,8 @@ const App: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('4');
   const [selectedColor, setSelectedColor] = useState('Azul');
   const [childrenProfiles, setChildrenProfiles] = useState<string[]>([]);
+  const [numChildren, setNumChildren] = useState(0);
+  const [childrenDetails, setChildrenDetails] = useState<{ name: string, birthDate: string }[]>([]);
   const [showIframeModal, setShowIframeModal] = useState(false);
   const [iframeUrl, setIframeUrl] = useState('');
   const [showConstructionPopup, setShowConstructionPopup] = useState(false);
@@ -228,8 +230,10 @@ const App: React.FC = () => {
   const CategoryMenu = () => {
     const categories = [
       { id: 'offers', label: 'Ofertas do Dia' },
-      { id: 'menina', label: 'Menina' },
-      { id: 'menino', label: 'Menino' },
+      { id: 'menina-bebe', label: 'Menina Bebê' },
+      { id: 'menina-kids', label: 'Menina Kids' },
+      { id: 'menino-bebe', label: 'Menino Bebê' },
+      { id: 'menino-kids', label: 'Menino Kids' },
       { id: 'acessorios', label: 'Acessórios' },
       { id: 'complementos', label: 'Complementos' }
     ];
@@ -410,41 +414,59 @@ const App: React.FC = () => {
 
         <div className="w-full lg:max-w-md bg-white p-8 lg:p-10 rounded-[48px] shadow-2xl border border-pink-50 relative">
           <div className="space-y-6">
-            <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic text-center">Entre para o Mundo Mágico</h3>
-            <div className="space-y-4 text-left">
+            <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic text-center">Faça seu cadastro e acesse uma Lua de Ofertas todos os dias.</h3>
+            <div className="space-y-4 text-left overflow-y-auto max-h-[500px] pr-2 scrollbar-hide">
               <input type="text" placeholder="Seu Nome" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
               <input type="email" placeholder="E-mail" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
               <input type="tel" placeholder="Telefone" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
 
-              <div className="grid grid-cols-2 gap-4">
-                <select className="px-4 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none lg:text-center">
-                  <option>Quantos Filhos?</option>
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3+</option>
-                </select>
-                <select className="px-4 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none">
-                  <option>Você é?</option>
-                  <option>Mãe</option>
-                  <option>Pai</option>
-                  <option>Os dois</option>
+              <div className="grid grid-cols-1 gap-4">
+                <select
+                  value={numChildren}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    setNumChildren(val);
+                    setChildrenDetails(Array(val).fill({ name: '', birthDate: '' }));
+                  }}
+                  className="px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none"
+                >
+                  <option value="0">Quantos Filhos?</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4+</option>
                 </select>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Perfil dos Filhos (Selecione todos):</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Menino', 'Menina', 'Bebê', 'Gêmeos'].map(p => (
-                    <button
-                      key={p}
-                      onClick={() => toggleProfile(p)}
-                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${childrenProfiles.includes(p) ? 'bg-[#BBD4E8] text-white shadow-md' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+              {childrenDetails.map((child, idx) => (
+                <div key={idx} className="space-y-3 p-5 bg-gray-50/50 rounded-3xl border border-gray-100 animate-in slide-in-from-top duration-300">
+                  <p className="text-[10px] font-black uppercase text-[#BBD4E8] tracking-widest pl-1">Filho(a) {idx + 1}</p>
+                  <input
+                    type="text"
+                    placeholder="Nome do filho(a)"
+                    className="w-full px-5 py-3 rounded-2xl bg-white border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"
+                    value={child.name}
+                    onChange={(e) => {
+                      const newDetails = [...childrenDetails];
+                      newDetails[idx] = { ...newDetails[idx], name: e.target.value };
+                      setChildrenDetails(newDetails);
+                    }}
+                  />
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-bold text-gray-400 pl-1">Data de Nascimento</p>
+                    <input
+                      type="date"
+                      className="w-full px-5 py-3 rounded-2xl bg-white border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"
+                      value={child.birthDate}
+                      onChange={(e) => {
+                        const newDetails = [...childrenDetails];
+                        newDetails[idx] = { ...newDetails[idx], birthDate: e.target.value };
+                        setChildrenDetails(newDetails);
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
+              ))}
 
               <button className="w-full py-5 bg-pink-400 text-white rounded-[28px] font-black uppercase text-xs tracking-widest shadow-lg shadow-pink-200 hover:scale-[1.02] active:scale-95 transition-all mt-6">
                 Quero Participar ✨
@@ -720,22 +742,47 @@ const App: React.FC = () => {
 
           <nav className="flex-1 overflow-y-auto space-y-1">
             {[
-              { label: 'Início', icon: Moon, section: AppSection.HOME },
-              { label: 'Loja', icon: ShoppingBag, section: AppSection.SHOP },
-              { label: 'Clube Luna Maria Kids', icon: Heart, section: AppSection.SUBSCRIPTION },
-              { label: 'Meus Pedidos', icon: ClipboardList, section: AppSection.REWARDS },
-              { label: 'Minha Conta', icon: User, section: AppSection.REWARDS },
-              { label: 'Ajuda / Atendimento', icon: HelpCircle, section: AppSection.HOME },
+              { label: 'Início', icon: Home, section: AppSection.HOME },
+              { label: 'Loja Mágica', icon: ShoppingBag, section: AppSection.SHOP },
+              { label: 'Espaço Kids', icon: Gamepad2, onClick: () => setShowConstructionPopup(true) },
+              { label: 'Espaço Família', icon: UsersIcon, onClick: () => setShowConstructionPopup(true) },
+              { label: 'Clube da Luna', icon: Heart, onClick: () => { setIframeUrl(CLUB_URL); setShowIframeModal(true); } },
             ].map((item, i) => (
               <button
                 key={i}
-                onClick={() => navigateTo(item.section)}
-                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all font-bold text-sm ${section === item.section ? 'bg-[#BBD4E8]/10 text-[#6B5A53]' : 'text-gray-500 hover:bg-gray-50'}`}
+                onClick={() => item.onClick ? item.onClick() : navigateTo(item.section as AppSection)}
+                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all font-bold text-sm ${(item.section && section === item.section) ? 'bg-[#BBD4E8]/10 text-[#6B5A53]' : 'text-gray-500 hover:bg-gray-50'}`}
               >
-                <item.icon size={20} className={section === item.section ? 'text-[#BBD4E8]' : 'text-gray-300'} />
+                <item.icon size={20} className={(item.section && section === item.section) ? 'text-[#BBD4E8]' : 'text-gray-300'} />
                 {item.label}
               </button>
             ))}
+
+            <div className="py-2">
+              <div className="flex items-center gap-4 p-4 text-gray-500 font-bold text-sm">
+                <User size={20} className="text-gray-300" />
+                <span>Minha Conta</span>
+              </div>
+              <div className="pl-12 space-y-1">
+                <button
+                  onClick={() => navigateTo(AppSection.REWARDS)}
+                  className={`w-full text-left p-3 rounded-xl text-xs font-bold ${section === AppSection.REWARDS ? 'bg-[#BBD4E8]/10 text-[#6B5A53]' : 'text-gray-400 hover:bg-gray-50'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <ClipboardList size={16} />
+                    Meus Pedidos
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigateTo(AppSection.HOME)}
+              className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all font-bold text-sm text-gray-500 hover:bg-gray-50"
+            >
+              <MessageCircle size={20} className="text-gray-300" />
+              Fale com a Luna
+            </button>
           </nav>
 
           <div className="pt-6 border-t border-gray-100 space-y-4">
@@ -769,11 +816,18 @@ const App: React.FC = () => {
       <TryOnShowcase />
 
       <div className="mt-8">
-        <DepartmentCarousel id="offers" title="🌙 Uma Lua de Ofertas" products={INITIAL_PRODUCTS} />
-        <DepartmentCarousel id="menina" title="🎀 Moda Menina" products={INITIAL_PRODUCTS} />
-        <DepartmentCarousel id="menino" title="🚀 Moda Menino" products={[...INITIAL_PRODUCTS].reverse()} />
-        <DepartmentCarousel id="acessorios" title="✨ Acessórios Mágicos" products={INITIAL_PRODUCTS} />
-        <DepartmentCarousel id="complementos" title="🎁 Complementos Luna" products={[...INITIAL_PRODUCTS].reverse()} />
+        <DepartmentCarousel id="offers" title="🌙 Ofertas do Dia" products={INITIAL_PRODUCTS} />
+
+        {/* Bloco Menina */}
+        <DepartmentCarousel id="menina-bebe" title="🎀 Menina Bebê" products={INITIAL_PRODUCTS} />
+        <DepartmentCarousel id="menina-kids" title="🎀 Menina Kids" products={INITIAL_PRODUCTS} />
+
+        {/* Bloco Menino */}
+        <DepartmentCarousel id="menino-bebe" title="🚀 Menino Bebê" products={[...INITIAL_PRODUCTS].reverse()} />
+        <DepartmentCarousel id="menino-kids" title="🚀 Menino Kids" products={[...INITIAL_PRODUCTS].reverse()} />
+
+        <DepartmentCarousel id="acessorios" title="✨ Acessórios" products={INITIAL_PRODUCTS} />
+        <DepartmentCarousel id="complementos" title="🎁 Complementos" products={[...INITIAL_PRODUCTS].reverse()} />
       </div>
 
       <div className="px-6 lg:px-20 py-12 space-y-12">

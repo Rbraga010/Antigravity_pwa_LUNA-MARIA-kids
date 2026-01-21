@@ -12,12 +12,26 @@ model User {
   email         String         @unique
   password_hash String
   name          String
+  phone         String?
+  num_children  Int?           @default(0)
   created_at    DateTime       @default(now())
+  children      Child[]
   subscriptions Subscription[]
   orders        Order[]
   try_on_logs   TryOnLog[]
 
   @@map("users")
+}
+
+model Child {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  name       String
+  birth_date DateTime
+  created_at DateTime @default(now())
+
+  @@map("children")
 }
 
 model Product {

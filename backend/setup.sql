@@ -13,9 +13,22 @@ CREATE TABLE "users" (
     "email" TEXT NOT NULL,
     "password_hash" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "phone" TEXT,
+    "num_children" INTEGER DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "children" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "birth_date" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "children_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -81,3 +94,6 @@ ALTER TABLE "try_on_logs" ADD CONSTRAINT "try_on_logs_user_id_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "try_on_logs" ADD CONSTRAINT "try_on_logs_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "children" ADD CONSTRAINT "children_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
