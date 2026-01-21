@@ -522,9 +522,12 @@ const App: React.FC = () => {
 
       {/* Actions */}
       <div className="flex items-center gap-2 lg:gap-6">
-        <button onClick={() => navigateTo(AppSection.REWARDS)} className="hidden lg:flex items-center gap-2 text-[10px] font-black uppercase text-[#6B5A53] tracking-wider hover:opacity-70">
+        <button
+          onClick={() => setShowLoginModal(true)}
+          className="hidden lg:flex items-center gap-2 text-[10px] font-black uppercase text-[#6B5A53] tracking-wider hover:opacity-70"
+        >
           <User size={18} />
-          <span>Minha Conta</span>
+          <span>{user.email ? 'Minha Conta' : 'Entrar'}</span>
         </button>
         <button onClick={() => navigateTo(AppSection.CART)} className="p-2 relative text-[#6B5A53] hover:bg-gray-50 rounded-full">
           <ShoppingCart size={22} />
@@ -1122,10 +1125,22 @@ const App: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <button onClick={() => navigateTo(AppSection.REWARDS)} className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                <ClipboardList size={20} className="text-[#6B5A53]" />
-                <span className="text-sm font-black text-[#6B5A53]">Meus Pedidos</span>
+              <button onClick={() => { setShowLoginModal(false); navigateTo(AppSection.MY_ACCOUNT); }} className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <User size={20} className="text-[#BBD4E8]" />
+                <span className="text-sm font-black text-[#6B5A53]">Ver Perfil Completo</span>
               </button>
+
+              <button onClick={() => { setShowLoginModal(false); navigateTo(AppSection.CART); }} className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <ShoppingCart size={20} className="text-[#6B5A53]" />
+                <span className="text-sm font-black text-[#6B5A53]">Meu Carrinho</span>
+              </button>
+
+              {user.role === 'SUPER_ADMIN' && (
+                <button onClick={() => { setShowLoginModal(false); navigateTo(AppSection.ADMIN_DASHBOARD); }} className="w-full flex items-center gap-3 p-4 bg-pink-50 rounded-2xl hover:bg-pink-100 transition-colors">
+                  <Settings2 size={20} className="text-pink-400" />
+                  <span className="text-sm font-black text-pink-400">Painel Administrativo</span>
+                </button>
+              )}
 
               <button
                 onClick={() => {
@@ -1595,6 +1610,8 @@ const App: React.FC = () => {
               { label: 'Espaço Kids', icon: Gamepad2, section: AppSection.KIDS },
               { label: 'Espaço Família', icon: UsersIcon, section: AppSection.FAMILY_MOMENT },
               { label: 'Clube da Luna', icon: Heart, onClick: () => { setIframeUrl(CLUB_URL); setShowIframeModal(true); } },
+              { label: user.email ? 'Minha Conta' : 'Entrar / Cadastrar', icon: User, onClick: () => setShowLoginModal(true) },
+              ...(user.email && user.role === 'SUPER_ADMIN' ? [{ label: 'Painel Admin', icon: Settings2, section: AppSection.ADMIN_DASHBOARD }] : []),
             ].map((item, i) => (
               <button
                 key={i}
@@ -1605,50 +1622,8 @@ const App: React.FC = () => {
                 {item.label}
               </button>
             ))}
-
-            <div className="py-2">
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="w-full flex items-center gap-4 p-4 text-gray-500 font-bold text-sm hover:bg-gray-50 rounded-2xl transition-colors"
-              >
-                <User size={20} className="text-gray-300" />
-                <span>Minha Conta</span>
-              </button>
-              {user.email && (
-                <div className="pl-12 space-y-1">
-                  <button
-                    onClick={() => navigateTo(AppSection.REWARDS)}
-                    className={`w-full text-left p-3 rounded-xl text-xs font-bold ${section === AppSection.REWARDS ? 'bg-[#BBD4E8]/10 text-[#6B5A53]' : 'text-gray-400 hover:bg-gray-50'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <ClipboardList size={16} />
-                      Meus Pedidos
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => navigateTo(AppSection.HOME)}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all font-bold text-sm text-gray-500 hover:bg-gray-50"
-            >
-              <MessageCircle size={20} className="text-gray-300" />
-              Fale com a Luna
-            </button>
           </nav>
 
-          <div className="pt-6 border-t border-gray-100 space-y-4">
-            <div className="p-4 bg-gray-50 rounded-2xl">
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2">Simulação de Assinatura</p>
-              <button
-                onClick={() => setIsSubscriber(!isSubscriber)}
-                className={`w-full p-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-colors ${isSubscriber ? 'bg-green-100 text-green-600' : 'bg-white border border-gray-200 text-gray-400'}`}
-              >
-                {isSubscriber ? 'Status: Assinante' : 'Ativar Modo Assinante'}
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </>
@@ -1947,6 +1922,87 @@ const App: React.FC = () => {
     </div>
   );
 
+  const renderMyAccount = () => (
+    <div className="pt-24 p-6 lg:p-12 space-y-12 animate-in fade-in duration-500 min-h-screen max-w-[800px] mx-auto">
+      <div className="text-center space-y-4">
+        <div className="w-24 h-24 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-black shadow-xl">
+          {user.name.charAt(0).toUpperCase()}
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic">{user.name}</h2>
+          <p className="text-gray-400 font-bold">{user.email}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-8 rounded-[40px] bg-white shadow-sm border border-gray-100 space-y-4">
+          <div className="flex items-center gap-3 text-purple-400">
+            <Heart size={24} />
+            <h3 className="font-black uppercase text-sm tracking-widest">Status do Clube</h3>
+          </div>
+          <p className="text-xs text-gray-400 italic">Você é um {isSubscriber ? 'Assinante Estrela' : 'Membro Explorador'} da Luna Maria.</p>
+          <button onClick={() => navigateTo(AppSection.SUBSCRIPTION)} className="w-full py-4 bg-purple-50 text-purple-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-purple-100 transition-all">Ver Assinatura</button>
+        </div>
+
+        <div className="p-8 rounded-[40px] bg-white shadow-sm border border-gray-100 space-y-4">
+          <div className="flex items-center gap-3 text-[#BBD4E8]">
+            <ShoppingBag size={24} />
+            <h3 className="font-black uppercase text-sm tracking-widest">Meus Pedidos</h3>
+          </div>
+          <p className="text-xs text-gray-400 italic">Acompanhe seus tesouros a caminho de casa.</p>
+          <button className="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed">Nenhum pedido ainda</button>
+        </div>
+      </div>
+
+      <button
+        onClick={() => {
+          localStorage.removeItem('authToken');
+          setUser({ name: 'Visitante', role: 'USER', tokens: 0, medals: [], drawingsCompleted: 0, coupons: [] });
+          navigateTo(AppSection.HOME);
+          setMascotMsg('Até logo! Volte sempre! 👋');
+        }}
+        className="w-full py-6 bg-red-50 text-red-400 rounded-[32px] font-black uppercase text-xs tracking-widest hover:bg-red-100 transition-all"
+      >
+        Sair da Conta
+      </button>
+    </div>
+  );
+
+  const renderAdminDashboard = () => (
+    <div className="pt-24 p-6 lg:p-12 space-y-12 animate-in fade-in duration-500 min-h-screen max-w-[1200px] mx-auto outline-none">
+      <div className="flex justify-between items-end border-b border-gray-100 pb-8">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Painel da Luna ✨</h2>
+          <p className="text-gray-400 font-bold italic">Gestão da Loja e Conteúdos</p>
+        </div>
+        <button onClick={() => setIsAdminEditing(!isAdminEditing)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${isAdminEditing ? 'bg-pink-400 text-white' : 'bg-white text-pink-400 border border-pink-100'}`}>
+          {isAdminEditing ? 'Sair do Modo Edição' : 'Entrar no Modo Edição'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { label: 'Vendas Mês', val: 'R$ 12.450', icon: CreditCard, color: 'text-green-500', bg: 'bg-green-50' },
+          { label: 'Novos Assinantes', val: '48', icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-50' },
+          { label: 'Visitas Hoje', val: '1.240', icon: Eye, color: 'text-blue-500', bg: 'bg-blue-50' }
+        ].map((s, i) => (
+          <div key={i} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-50 space-y-4">
+            <div className={`w-12 h-12 ${s.bg} ${s.color} rounded-2xl flex items-center justify-center`}><s.icon size={24} /></div>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.label}</p>
+              <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-pink-50/50 p-10 rounded-[56px] border-2 border-dashed border-pink-100 text-center">
+        <Settings2 size={48} className="mx-auto text-pink-200 mb-4" />
+        <h3 className="text-lg font-black text-pink-400 font-luna uppercase italic">Controle de Catálogo Ativado</h3>
+        <p className="text-xs font-bold text-pink-300 mt-2 italic">Navegue pelas seções e use os ícones de edição para alterar conteúdos.</p>
+      </div>
+    </div>
+  );
+
   const renderCart = () => (
     <div className="pt-20 p-6 space-y-6 pb-32 animate-in slide-in-from-right duration-300 min-h-screen">
       <h2 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Meu Carrinho</h2>
@@ -1999,6 +2055,8 @@ const App: React.FC = () => {
         {section === AppSection.FAMILY_MOMENT && renderFamilyContent()}
         {section === AppSection.SUBSCRIPTION && renderSubscription()}
         {section === AppSection.CART && renderCart()}
+        {section === AppSection.MY_ACCOUNT && renderMyAccount()}
+        {section === AppSection.ADMIN_DASHBOARD && renderAdminDashboard()}
 
         {(section === AppSection.ADMIN || section === AppSection.REWARDS) && (
           <div className="p-8 text-center space-y-6 pt-32 min-h-screen flex flex-col items-center">
@@ -2097,6 +2155,7 @@ const App: React.FC = () => {
         currentSection={section}
         onNavigate={navigateTo}
         onClubeClick={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }}
+        onAccountClick={() => setShowLoginModal(true)}
         cartCount={cart.length}
       />
     </div>
