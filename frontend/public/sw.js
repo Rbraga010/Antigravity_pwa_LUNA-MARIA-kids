@@ -1,14 +1,38 @@
 // Basic Service Worker for PWA Installation Requirements
-const CACHE_NAME = 'luna-maria-v2';
+const CACHE_NAME = 'luna-maria-v3-admin';
 
 self.addEventListener('install', (event) => {
     // Force the waiting service worker to become the active service worker.
     self.skipWaiting();
+    // Clear old caches on install
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
 });
 
 self.addEventListener('activate', (event) => {
-    // Claim any currently open clients.
-    event.waitUntil(clients.claim());
+    // Claim any currently open clients and clear old caches.
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all([
+                ...cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                }),
+                clients.claim()
+            ]);
+        })
+    );
 });
 
 self.addEventListener('fetch', (event) => {
