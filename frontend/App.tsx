@@ -2,7 +2,7 @@
 // Restore: Recuperação da interface e conteúdos originais
 import React, { useState, useEffect, useRef } from 'react';
 import { AppSection, Product, CartItem, UserProfile, Game, CarouselItem, ContentMaterial } from './types';
-import { INITIAL_PRODUCTS, COLORING_THEMES, GAMES } from './constants';
+import { INITIAL_PRODUCTS, COLORING_THEMES, GAMES, SAMPLE_KIDS_MATERIALS, SAMPLE_FAMILY_MATERIALS } from './constants';
 import Navigation from './components/Navigation';
 import Mascot from './components/Mascot';
 import {
@@ -142,9 +142,13 @@ const App: React.FC = () => {
             const materialsData = await materialsRes.json();
             setKidsMaterials(materialsData.filter((m: ContentMaterial) => m.section === 'KIDS'));
             setFamilyMaterials(materialsData.filter((m: ContentMaterial) => m.section === 'FAMILY'));
+          } else {
+            setKidsMaterials(SAMPLE_KIDS_MATERIALS);
+            setFamilyMaterials(SAMPLE_FAMILY_MATERIALS);
           }
         } catch (e) {
-          // Not critical, materials will be empty
+          setKidsMaterials(SAMPLE_KIDS_MATERIALS);
+          setFamilyMaterials(SAMPLE_FAMILY_MATERIALS);
         }
       } catch (error) {
         console.error('Failed to load data:', error);

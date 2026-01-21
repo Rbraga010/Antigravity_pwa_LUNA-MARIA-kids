@@ -37,7 +37,7 @@ export const INITIAL_PRODUCTS: Product[] = [
 ];
 
 export const COLORING_THEMES = [
-  "Animais da Floresta", "Fundo do Mar", "Espaço Sideral", "Dinossauros Amigos", 
+  "Animais da Floresta", "Fundo do Mar", "Espaço Sideral", "Dinossauros Amigos",
   "Princesas e Cavaleiros", "Robôs Brincalhões", "Frutas Sorridentes", "Jardim Encantado",
   "Veículos Rápidos", "Doces e Guloseimas"
 ];
@@ -55,3 +55,14 @@ export const COLORS = {
   white: '#FAF8F5',
   brown: '#6B5A53'
 };
+export const SAMPLE_KIDS_MATERIALS: any[] = [
+  { id: 'k1', title: 'Aventura na Floresta', type: 'VIDEO', section: 'KIDS', thumbnail_url: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400', url: '#' },
+  { id: 'k2', title: 'Pinte a Luna Maria', type: 'IMAGE', section: 'KIDS', thumbnail_url: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400', url: '#' },
+  { id: 'k3', title: 'Desafio Cósmico', type: 'VIDEO', section: 'KIDS', thumbnail_url: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400', url: '#' }
+];
+
+export const SAMPLE_FAMILY_MATERIALS: any[] = [
+  { id: 'f1', title: 'Guia do Ritual do Sono', type: 'PDF', section: 'FAMILY', thumbnail_url: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400', url: '#' },
+  { id: 'f2', title: 'Piquenique na Sala', type: 'VIDEO', section: 'FAMILY', thumbnail_url: 'https://images.unsplash.com/photo-1526723466833-2bf9eeb079f0?w=400', url: '#' },
+  { id: 'f3', title: 'Conexão em 5 Minutos', type: 'VIDEO', section: 'FAMILY', thumbnail_url: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400', url: '#' }
+];
