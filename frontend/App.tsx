@@ -1126,6 +1126,12 @@ const App: React.FC = () => {
                   <span className="text-[10px] font-black text-pink-400 uppercase tracking-widest">Super Admin</span>
                 </div>
               )}
+              {isSubscriber && (
+                <div className="inline-flex items-center gap-2 bg-purple-50 px-4 py-2 rounded-full">
+                  <StarIcon size={16} className="text-purple-400" />
+                  <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Assinante Clube</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
