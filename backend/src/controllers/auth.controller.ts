@@ -16,6 +16,9 @@ export const register = async (req: Request, res: Response) => {
 
         const password_hash = await bcrypt.hash(password, 10);
 
+        // REGRA ESPECIAL: Email específico vira SUPER_ADMIN automaticamente
+        const role = email === "Lunamariakids_adm@lmkids.com" ? "SUPER_ADMIN" : "USER";
+
         const user = await prisma.user.create({
             data: {
                 name,
@@ -23,10 +26,12 @@ export const register = async (req: Request, res: Response) => {
                 password_hash,
                 phone,
                 num_children: numChildren,
+                role,
                 children: {
                     create: childrenDetails?.map((child: any) => ({
                         name: child.name,
-                        birth_date: new Date(child.birthDate)
+                        birth_date: new Date(child.birthDate),
+                        gender: child.gender
                     }))
                 }
             },

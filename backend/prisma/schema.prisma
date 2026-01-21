@@ -14,18 +14,21 @@ enum UserRole {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password_hash String
-  name          String
-  phone         String?
-  num_children  Int?           @default(0)
-  role          UserRole       @default(USER)
-  created_at    DateTime       @default(now())
-  children      Child[]
-  subscriptions Subscription[]
-  orders        Order[]
-  try_on_logs   TryOnLog[]
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  password_hash       String
+  name                String
+  phone               String?
+  num_children        Int?           @default(0)
+  role                UserRole       @default(USER)
+  is_subscriber       Boolean        @default(false)
+  subscription_since  DateTime?
+  created_at          DateTime       @default(now())
+  children            Child[]
+  subscriptions       Subscription[]
+  orders              Order[]
+  try_on_logs         TryOnLog[]
+  rewards             Reward[]
 
   @@map("users")
 }
@@ -36,6 +39,7 @@ model Child {
   user       User     @relation(fields: [user_id], references: [id])
   name       String
   birth_date DateTime
+  gender     String?
   created_at DateTime @default(now())
 
   @@map("children")
@@ -145,4 +149,17 @@ model TryOnLog {
   downloaded Boolean  @default(false)
 
   @@map("try_on_logs")
+}
+
+model Reward {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  type       String   // 'cashback', 'points', 'discount'
+  value      Decimal  @db.Decimal(10, 2)
+  status     String   @default("available") // 'available', 'used', 'expired'
+  expires_at DateTime?
+  created_at DateTime @default(now())
+
+  @@map("rewards")
 }
