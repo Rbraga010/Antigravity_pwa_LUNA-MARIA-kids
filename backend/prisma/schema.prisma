@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
@@ -14,6 +20,7 @@ model User {
   name          String
   phone         String?
   num_children  Int?           @default(0)
+  role          UserRole       @default(USER)
   created_at    DateTime       @default(now())
   children      Child[]
   subscriptions Subscription[]
@@ -35,16 +42,60 @@ model Child {
 }
 
 model Product {
-  id          String     @id @default(uuid())
-  name        String
-  description String
-  price       Decimal    @db.Decimal(10, 2)
-  image_url   String
-  stock       Int
-  category    String
-  try_on_logs TryOnLog[]
+  id            String     @id @default(uuid())
+  name          String
+  description   String
+  price         Decimal    @db.Decimal(10, 2)
+  old_price     Decimal?   @db.Decimal(10, 2)
+  image_url     String
+  stock         Int
+  category      String
+  display_order Int        @default(0)
+  try_on_logs   TryOnLog[]
 
   @@map("products")
+}
+
+model CarouselItem {
+  id         String       @id @default(uuid())
+  image_url  String
+  title      String?
+  subtitle   String?
+  type       CarouselType
+  order      Int          @default(0)
+  created_at DateTime     @default(now())
+
+  @@map("carousel_items")
+}
+
+enum CarouselType {
+  TOP
+  FEATURED
+}
+
+model ContentMaterial {
+  id            String       @id @default(uuid())
+  title         String
+  description   String?
+  type          ContentType
+  url           String
+  thumbnail_url String?
+  section       ContentSection
+  order         Int          @default(0)
+  created_at    DateTime     @default(now())
+
+  @@map("content_materials")
+}
+
+enum ContentType {
+  VIDEO
+  PDF
+  IMAGE
+}
+
+enum ContentSection {
+  KIDS
+  FAMILY
 }
 
 model Subscription {

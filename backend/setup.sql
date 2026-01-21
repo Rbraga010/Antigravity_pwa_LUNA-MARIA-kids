@@ -1,5 +1,17 @@
--- SCRIPT DE CRIAÇÃO DE TABELAS LUNA MARIA KIDS
+-- SCRIPT DE CRIAÇÃO DE TABELAS LUNA MARIA KIDS v2
 -- COPIE E COLE NO SQL EDITOR DO SUPABASE
+
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'SUPER_ADMIN');
+
+-- CreateEnum
+CREATE TYPE "CarouselType" AS ENUM ('TOP', 'FEATURED');
+
+-- CreateEnum
+CREATE TYPE "ContentType" AS ENUM ('VIDEO', 'PDF', 'IMAGE');
+
+-- CreateEnum
+CREATE TYPE "ContentSection" AS ENUM ('KIDS', 'FAMILY');
 
 -- CreateEnum
 CREATE TYPE "SubscriptionPlan" AS ENUM ('basico', 'medio', 'avancado');
@@ -15,6 +27,7 @@ CREATE TABLE "users" (
     "name" TEXT NOT NULL,
     "phone" TEXT,
     "num_children" INTEGER DEFAULT 0,
+    "role" "UserRole" NOT NULL DEFAULT 'USER',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
@@ -37,11 +50,41 @@ CREATE TABLE "products" (
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "price" DECIMAL(10,2) NOT NULL,
+    "old_price" DECIMAL(10,2),
     "image_url" TEXT NOT NULL,
     "stock" INTEGER NOT NULL,
     "category" TEXT NOT NULL,
+    "display_order" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "products_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "carousel_items" (
+    "id" TEXT NOT NULL,
+    "image_url" TEXT NOT NULL,
+    "title" TEXT,
+    "subtitle" TEXT,
+    "type" "CarouselType" NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "carousel_items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "content_materials" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "type" "ContentType" NOT NULL,
+    "url" TEXT NOT NULL,
+    "thumbnail_url" TEXT,
+    "section" "ContentSection" NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "content_materials_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -84,6 +127,9 @@ CREATE TABLE "try_on_logs" (
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- AddForeignKey
+ALTER TABLE "children" ADD CONSTRAINT "children_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -94,6 +140,3 @@ ALTER TABLE "try_on_logs" ADD CONSTRAINT "try_on_logs_user_id_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "try_on_logs" ADD CONSTRAINT "try_on_logs_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "children" ADD CONSTRAINT "children_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

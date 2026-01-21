@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AppSection, Product, CartItem, UserProfile, Game } from './types';
+import { AppSection, Product, CartItem, UserProfile, Game, CarouselItem, ContentMaterial } from './types';
 import { INITIAL_PRODUCTS, COLORING_THEMES, GAMES } from './constants';
 import Navigation from './components/Navigation';
 import Mascot from './components/Mascot';
@@ -10,7 +10,7 @@ import {
   Users as UsersIcon, ShieldCheck, User, X, Check, AlertCircle, Zap,
   ArrowLeft, RefreshCw, Smartphone, CreditCard, Menu, Eye, Lock,
   Settings2, CheckCircle2, Trophy, HelpCircle, ClipboardList, Truck, Star as StarIcon, ChevronLeft,
-  Facebook, Instagram, Twitter, Search, ShoppingCart, Home, MessageCircle
+  Facebook, Instagram, Twitter, Search, ShoppingCart, Home, MessageCircle, Edit3
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -39,7 +39,8 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState<UserProfile>({
     name: 'Família Luna',
-    role: 'parent',
+    email: 'admin@lunamaria.com',
+    role: 'SUPER_ADMIN', // Para desenvolvimento, iniciamos como Super Admin
     tokens: 10,
     medals: ['Iniciante'],
     drawingsCompleted: 0,
@@ -65,6 +66,17 @@ const App: React.FC = () => {
   const [showIframeModal, setShowIframeModal] = useState(false);
   const [iframeUrl, setIframeUrl] = useState('');
   const [showConstructionPopup, setShowConstructionPopup] = useState(false);
+
+  // Admin and Dynamic Content States
+  const [topCarousel, setTopCarousel] = useState<CarouselItem[]>([]);
+  const [featuredCarousel, setFeaturedCarousel] = useState<CarouselItem[]>([]);
+  const [kidsMaterials, setKidsMaterials] = useState<ContentMaterial[]>([]);
+  const [familyMaterials, setFamilyMaterials] = useState<ContentMaterial[]>([]);
+  const [isAdminEditing, setIsAdminEditing] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingCarouselItem, setEditingCarouselItem] = useState<CarouselItem | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<ContentMaterial | null>(null);
+  const [sortOption, setSortOption] = useState<'default' | 'price_asc' | 'price_desc' | 'newest'>('default');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -124,6 +136,34 @@ const App: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const getSortedProducts = (products: Product[]) => {
+    const sorted = [...products];
+    switch (sortOption) {
+      case 'price_asc':
+        return sorted.sort((a, b) => a.price - b.price);
+      case 'price_desc':
+        return sorted.sort((a, b) => b.price - a.price);
+      case 'newest':
+        // No campo 'createdAt' real, aqui simulamos com reverse ou ID
+        return sorted.reverse();
+      default:
+        return sorted.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    }
+  };
+
+  const adjustImageForCategory = (imageUrl: string, category: string) => {
+    // Lógica para ajuste automático baseada na categoria
+    // Por exemplo, acessórios precisam de mais zoom, roupas de bebê de centralização
+    const adjustments: Record<string, string> = {
+      'acessorios': 'scale-110 object-center',
+      'menina-bebe': 'object-top',
+      'menino-bebe': 'object-top',
+      'menina-kids': 'object-center',
+      'menino-kids': 'object-center'
+    };
+    return adjustments[category] || 'object-center';
   };
 
   const addToCart = (product: Product) => {
@@ -544,11 +584,18 @@ const App: React.FC = () => {
     </div>
   );
 
-  const DepartmentCarousel = ({ id, title, products }: { id: string, title: string, products: Product[] }) => (
-    <section id={id} className="px-6 lg:px-20 py-12 space-y-8 overflow-hidden">
-      <div className="space-y-4 border-b border-gray-100 pb-4">
-        <h2 className="text-xl lg:text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">{title}</h2>
-        <div className="flex justify-end">
+  const DepartmentCarousel = ({ id, title, products, isAdmin, onEdit }: { id: string, title: string, products: Product[], isAdmin?: boolean, onEdit?: (p: Product) => void }) => (
+    <section id={id} className={`px-6 lg:px-20 py-12 space-y-8 overflow-hidden transition-all ${isAdmin ? 'bg-pink-50/20' : ''}`}>
+      <div className="space-y-4 border-b border-gray-100 pb-4 flex justify-between items-end">
+        <div>
+          <h2 className="text-xl lg:text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">{title}</h2>
+          {isAdmin && (
+            <p className="text-[9px] font-black text-pink-400 uppercase tracking-widest flex items-center gap-1">
+              <Edit3 size={10} /> Editar Vitrine: {title}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-4">
           <button onClick={() => navigateTo(AppSection.SHOP)} className="text-[10px] font-black uppercase tracking-widest text-[#BBD4E8] hover:text-[#6B5A53] transition-colors">Ver Tudo</button>
         </div>
       </div>
@@ -566,13 +613,112 @@ const App: React.FC = () => {
       >
         {products.map(p => (
           <SwiperSlide key={p.id}>
-            <ProductCard product={p} onTryOn={(selected) => { setSelectedProduct(selected); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }} />
+            <div className="relative group">
+              <ProductCard
+                product={p}
+                onTryOn={(selected) => { setSelectedProduct(selected); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }}
+              />
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit?.(p); }}
+                  className="absolute top-4 right-4 z-40 p-3 bg-pink-400 text-white rounded-full shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white"
+                >
+                  <Edit3 size={16} />
+                </button>
+              )}
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>
     </section>
   );
 
+  const ContentRow = ({ title, items, isAdmin, onEdit }: { title: string, items: ContentMaterial[], isAdmin?: boolean, onEdit?: (m: ContentMaterial) => void }) => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center px-6 lg:px-20">
+        <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">{title}</h3>
+        {isAdmin && (
+          <button
+            onClick={() => onEdit?.({} as ContentMaterial)}
+            className="text-[9px] font-black uppercase tracking-widest bg-pink-400 text-white px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg"
+          >
+            <Plus size={10} /> Novo Conteúdo
+          </button>
+        )}
+      </div>
+      <Swiper
+        modules={[SwiperNavigation]}
+        spaceBetween={15}
+        slidesPerView={1.2}
+        navigation={true}
+        breakpoints={{
+          640: { slidesPerView: 2.2 },
+          1024: { slidesPerView: 3.5 },
+          1280: { slidesPerView: 4.5 }
+        }}
+        className="content-row !px-6 lg:!px-20 !overflow-visible"
+      >
+        {items.length === 0 ? (
+          <div className="px-6 lg:px-20">
+            <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[32px] p-12 text-center">
+              <Sparkles className="mx-auto text-gray-200 mb-4" size={32} />
+              <p className="text-xs font-bold text-gray-300 uppercase tracking-widest italic">A magia está sendo preparada...</p>
+            </div>
+          </div>
+        ) : items.map(item => (
+          <SwiperSlide key={item.id}>
+            <div className="relative group aspect-video rounded-3xl overflow-hidden shadow-xl bg-gray-100">
+              <img src={item.thumbnail_url || 'https://images.unsplash.com/photo-1454165833767-027eeea160a7?w=400'} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                <p className="text-[9px] font-black text-pink-400 uppercase tracking-widest mb-1">{item.type}</p>
+                <h4 className="text-xs font-black text-white uppercase italic leading-tight">{item.title}</h4>
+              </div>
+              <button className="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
+                  <Eye size={20} />
+                </div>
+              </button>
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit?.(item); }}
+                  className="absolute top-4 right-4 z-40 p-2 bg-pink-400 text-white rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100"
+                >
+                  <Edit3 size={14} />
+                </button>
+              )}
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  );
+
+  const renderKidsContent = () => (
+    <div className="min-h-screen pb-32 space-y-12 pt-12 animate-in fade-in duration-500">
+      <header className="px-6 lg:px-20 space-y-2">
+        <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Espaço Kids</h2>
+        <p className="text-sm font-bold text-gray-400 italic">Um mundo de diversão e aprendizado para os pequenos.</p>
+      </header>
+
+      <ContentRow title="📺 Vídeos Animados" items={kidsMaterials.filter(m => m.type === 'VIDEO')} isAdmin={isAdminEditing} onEdit={setEditingMaterial} />
+      <ContentRow title="🎨 Atividades & Pinturas" items={kidsMaterials.filter(m => m.type === 'IMAGE' || m.type === 'PDF')} isAdmin={isAdminEditing} onEdit={setEditingMaterial} />
+      <ContentRow title="🧠 Desafios da Luna" items={kidsMaterials.filter(m => m.section === 'KIDS')} isAdmin={isAdminEditing} onEdit={setEditingMaterial} />
+    </div>
+  );
+
+  const renderFamilyContent = () => (
+    <div className="min-h-screen pb-32 space-y-12 pt-12 animate-in fade-in duration-500">
+      <header className="px-6 lg:px-20 space-y-2">
+        <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Espaço Família</h2>
+        <p className="text-sm font-bold text-gray-400 italic">Conexão, rituais e mimos para fortalecer os laços.</p>
+      </header>
+
+      <ContentRow title="📖 Guias & Rituais (PDF)" items={familyMaterials.filter(m => m.type === 'PDF')} isAdmin={isAdminEditing} onEdit={setEditingMaterial} />
+      <ContentRow title="🎥 Momentos em Família" items={familyMaterials.filter(m => m.type === 'VIDEO')} isAdmin={isAdminEditing} onEdit={setEditingMaterial} />
+      <ContentRow title="✨ Dicas de Ouro" items={familyMaterials.filter(m => m.section === 'FAMILY')} isAdmin={isAdminEditing} onEdit={setEditingMaterial} />
+    </div>
+  );
   const renderHomeTryOnPopup = () => (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[110] flex items-center justify-center p-4 animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[64px] shadow-2xl animate-in zoom-in duration-500 relative scrollbar-hide">
@@ -654,10 +800,174 @@ const App: React.FC = () => {
     </div>
   );
 
+  const AdminModals = () => {
+    if (!isAdminEditing) return null;
+
+    return (
+      <>
+        {/* Product Modal */}
+        {editingProduct && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative scrollbar-hide">
+              <button onClick={() => setEditingProduct(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
+
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Edição Mágica de Produto ✨</h3>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest italic">Ajuste os detalhes deste tesouro da Luna Maria.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Image Upload Area */}
+                <div className="space-y-4">
+                  <div className="aspect-[4/5] bg-pink-50 rounded-[32px] border-2 border-dashed border-pink-200 flex flex-col items-center justify-center relative group overflow-hidden">
+                    {editingProduct.image ? (
+                      <>
+                        <img src={editingProduct.image} className="w-full h-full object-cover" alt="Preview" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button className="bg-white text-pink-400 p-4 rounded-full shadow-xl"><RefreshCw size={24} /></button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center p-6 space-y-4">
+                        <div className="p-4 bg-white rounded-2xl text-pink-400 mx-auto w-fit shadow-sm"><Download size={32} /></div>
+                        <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest leading-relaxed">Arraste a PNG mágica aqui ou clique para buscar</p>
+                      </div>
+                    )}
+                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/png" />
+                  </div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase italic text-center">Formato sugerido: PNG transparente para efeito flutuante.</p>
+                </div>
+
+                {/* Form Area */}
+                <div className="space-y-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Nome do Produto</label>
+                    <input type="text" defaultValue={editingProduct.name} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Ex: Vestido Nuvem Mágica" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Atual</label>
+                      <input type="number" defaultValue={editingProduct.price} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="129.90" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Antigo (Promo)</label>
+                      <input type="number" defaultValue={editingProduct.oldPrice} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="189.90" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Categoria</label>
+                    <select defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
+                      <option value="menina-bebe">Menina Bebê</option>
+                      <option value="menina-kids">Menina Kids</option>
+                      <option value="menino-bebe">Menino Bebê</option>
+                      <option value="menino-kids">Menino Kids</option>
+                      <option value="acessorios">Acessórios</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Ordem de Exibição (0 = Início)</label>
+                    <input type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 flex gap-4">
+                <button className="flex-1 bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Salvar Alterações ✨</button>
+                <button className="px-8 bg-red-50 text-red-400 rounded-[28px] font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-colors">Excluir</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Carousel Modal (Shared Logic for Top and Featured) */}
+        {editingCarouselItem && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative">
+              <button onClick={() => setEditingCarouselItem(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
+
+              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Banner do Carrossel ✨</h3>
+
+              <div className="space-y-6">
+                <div className="aspect-video bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100 flex items-center justify-center relative overflow-hidden">
+                  {editingCarouselItem.image_url ? (
+                    <img src={editingCarouselItem.image_url} className="w-full h-full object-cover" alt="Preview" />
+                  ) : (
+                    <div className="text-center p-6 text-gray-300">
+                      <Download size={32} className="mx-auto mb-2" />
+                      <p className="text-[9px] font-black uppercase tracking-widest">Clique para subir o Banner</p>
+                    </div>
+                  )}
+                  <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+                </div>
+
+                <div className="space-y-4">
+                  <input type="text" defaultValue={editingCarouselItem.title || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="Título do Banner" />
+                  <input type="text" defaultValue={editingCarouselItem.subtitle || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="Subtítulo/Texto de Apoio" />
+                  <select defaultValue={editingCarouselItem.type} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
+                    <option value="TOP">Topo (Cabeçalho)</option>
+                    <option value="FEATURED">Destaque (Meio da Página)</option>
+                  </select>
+                </div>
+
+                <button className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl">Publicar Banner ✨</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Content Material Modal (Video, PDF, Image) */}
+        {editingMaterial && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative">
+              <button onClick={() => setEditingMaterial(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
+
+              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Material de Conteúdo ✨</h3>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-3">
+                  {['VIDEO', 'PDF', 'IMAGE'].map(type => (
+                    <button
+                      key={type}
+                      className={`py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest border-2 transition-all ${editingMaterial.type === type ? 'bg-pink-50 border-pink-400 text-pink-400' : 'bg-gray-50 border-transparent text-gray-400'}`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  <input type="text" defaultValue={editingMaterial.title || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="Título do Material" />
+                  <textarea defaultValue={editingMaterial.description || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none min-h-[100px]" placeholder="Breve descrição mágica..." />
+                  <input type="text" defaultValue={editingMaterial.url || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="URL do Vídeo (YouTube/Vimeo) ou Link do PDF" />
+
+                  <div className="flex items-center gap-4">
+                    <select defaultValue={editingMaterial.section} className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold">
+                      <option value="KIDS">Espaço Kids</option>
+                      <option value="FAMILY">Espaço Família</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl">Salvar Material ✨</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const ProductCard = ({ product, onTryOn, ...props }: { product: Product, onTryOn: (p: Product) => void, [key: string]: any }) => (
     <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col min-w-[240px] max-w-[240px] group transition-all hover:shadow-md">
       <div className="relative aspect-[4/5] overflow-hidden">
-        <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <img
+          src={product.image}
+          alt={product.name}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${adjustImageForCategory(product.image, product.category)}`}
+        />
         <button
           onClick={() => addToCart(product)}
           className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg text-[#6B5A53] active:scale-95 transition-all"
@@ -672,7 +982,12 @@ const App: React.FC = () => {
         </div>
         <h3 className="text-xs font-black text-[#6B5A53] uppercase tracking-tighter line-clamp-1">{product.name}</h3>
         <div className="space-y-0.5">
-          <p className="text-sm font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
+            {product.oldPrice && (
+              <p className="text-[10px] text-gray-400 line-through font-bold">R$ {product.oldPrice.toFixed(2)}</p>
+            )}
+          </div>
           <p className="text-[9px] font-bold text-gray-400 uppercase italic">Ou 3x de R$ {(product.price / 3).toFixed(2)}</p>
         </div>
         <div className="pt-2 flex flex-col gap-2">
@@ -815,19 +1130,94 @@ const App: React.FC = () => {
 
       <TryOnShowcase />
 
-      <div className="mt-8">
-        <DepartmentCarousel id="offers" title="🌙 Ofertas do Dia" products={INITIAL_PRODUCTS} />
+      <div className="mt-8 relative">
+        {isAdminEditing && (
+          <div className="mx-6 mb-8 flex justify-between items-center bg-pink-50 p-6 rounded-[40px] border-2 border-dashed border-pink-200 animate-in fade-in zoom-in duration-500">
+            <div>
+              <h3 className="text-lg font-black text-pink-600 font-luna uppercase italic">Gestão da Vitrine ✨</h3>
+              <p className="text-[10px] text-pink-400 font-black uppercase tracking-widest">Adicione novos tesouros ou organize a ordem mágica.</p>
+            </div>
+            <button
+              onClick={() => setEditingProduct({} as Product)}
+              className="bg-pink-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-pink-100"
+            >
+              <Plus size={18} />
+              Novo Produto
+            </button>
+          </div>
+        )}
+
+        {/* Ordenação */}
+        <div className="flex justify-end mb-6 px-6">
+          <div className="flex items-center gap-3 bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-gray-100">
+            <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest pl-2">Ordenar por:</p>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value as any)}
+              className="bg-transparent text-[10px] font-black uppercase text-[#6B5A53] focus:outline-none pr-4 cursor-pointer"
+            >
+              <option value="default">Mágico</option>
+              <option value="price_asc">Menor Preço</option>
+              <option value="price_desc">Maior Preço</option>
+              <option value="newest">Novidades</option>
+            </select>
+          </div>
+        </div>
+
+        <DepartmentCarousel
+          id="offers"
+          title="🌙 Ofertas do Dia"
+          products={getSortedProducts(INITIAL_PRODUCTS)}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
 
         {/* Bloco Menina */}
-        <DepartmentCarousel id="menina-bebe" title="🎀 Menina Bebê" products={INITIAL_PRODUCTS} />
-        <DepartmentCarousel id="menina-kids" title="🎀 Menina Kids" products={INITIAL_PRODUCTS} />
+        <DepartmentCarousel
+          id="menina-bebe"
+          title="🎀 Menina Bebê"
+          products={getSortedProducts(INITIAL_PRODUCTS)}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
+        <DepartmentCarousel
+          id="menina-kids"
+          title="🎀 Menina Kids"
+          products={getSortedProducts(INITIAL_PRODUCTS)}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
 
         {/* Bloco Menino */}
-        <DepartmentCarousel id="menino-bebe" title="🚀 Menino Bebê" products={[...INITIAL_PRODUCTS].reverse()} />
-        <DepartmentCarousel id="menino-kids" title="🚀 Menino Kids" products={[...INITIAL_PRODUCTS].reverse()} />
+        <DepartmentCarousel
+          id="menino-bebe"
+          title="🚀 Menino Bebê"
+          products={getSortedProducts([...INITIAL_PRODUCTS].reverse())}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
+        <DepartmentCarousel
+          id="menino-kids"
+          title="🚀 Menino Kids"
+          products={getSortedProducts([...INITIAL_PRODUCTS].reverse())}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
 
-        <DepartmentCarousel id="acessorios" title="✨ Acessórios" products={INITIAL_PRODUCTS} />
-        <DepartmentCarousel id="complementos" title="🎁 Complementos" products={[...INITIAL_PRODUCTS].reverse()} />
+        <DepartmentCarousel
+          id="acessorios"
+          title="✨ Acessórios"
+          products={getSortedProducts(INITIAL_PRODUCTS)}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
+        <DepartmentCarousel
+          id="complementos"
+          title="🎁 Complementos"
+          products={getSortedProducts([...INITIAL_PRODUCTS].reverse())}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
       </div>
 
       <div className="px-6 lg:px-20 py-12 space-y-12">
@@ -1060,16 +1450,19 @@ const App: React.FC = () => {
       <TickerBar />
 
       <ExternalIframeModal />
+      <AdminModals />
 
       <Sidebar />
 
       <main className="relative z-10 w-full max-w-[1440px] mx-auto min-h-screen">
         {section === AppSection.HOME && renderHome()}
         {section === AppSection.SHOP && renderShop()}
+        {section === AppSection.KIDS && renderKidsContent()}
+        {section === AppSection.FAMILY_MOMENT && renderFamilyContent()}
         {section === AppSection.SUBSCRIPTION && renderSubscription()}
         {section === AppSection.CART && renderCart()}
 
-        {(section === AppSection.ADMIN || section === AppSection.KIDS || section === AppSection.FAMILY_MOMENT || section === AppSection.REWARDS) && (
+        {(section === AppSection.ADMIN || section === AppSection.REWARDS) && (
           <div className="p-8 text-center space-y-6 pt-32 min-h-screen flex flex-col items-center">
             <div className="p-10 bg-white rounded-full shadow-sm border border-pink-50 text-[#BBD4E8]"><Sparkles size={56} /></div>
             <div className="space-y-2">
@@ -1150,6 +1543,17 @@ const App: React.FC = () => {
       )}
 
       <Mascot message={mascotMsg} />
+
+      {user.role === 'SUPER_ADMIN' && (
+        <button
+          onClick={() => setIsAdminEditing(!isAdminEditing)}
+          className={`fixed bottom-24 right-6 z-[100] p-4 rounded-full shadow-2xl transition-all flex items-center gap-2 font-black uppercase text-[10px] tracking-widest ${isAdminEditing ? 'bg-pink-400 text-white' : 'bg-white text-[#6B5A53] hover:scale-105'}`}
+        >
+          <Settings2 size={20} className={isAdminEditing ? 'animate-spin-slow' : ''} />
+          {isAdminEditing ? 'Sair da Edição' : 'Edição Mágica'}
+        </button>
+      )}
+
       <Navigation
         currentSection={section}
         onNavigate={navigateTo}

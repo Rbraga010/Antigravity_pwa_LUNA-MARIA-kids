@@ -35,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
-        return res.status(201).json({ user: { id: user.id, name: user.name, email: user.email }, token });
+        return res.status(201).json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
     } catch (error) {
         return res.status(500).json({ message: "Erro ao registrar usuário", error });
     }
@@ -57,7 +57,7 @@ export const login = async (req: Request, res: Response) => {
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
-        return res.json({ user: { id: user.id, name: user.name, email: user.email }, token });
+        return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
     } catch (error) {
         return res.status(500).json({ message: "Erro ao fazer login", error });
     }
@@ -67,7 +67,7 @@ export const me = async (req: any, res: Response) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.userId },
-            select: { id: true, name: true, email: true, created_at: true },
+            select: { id: true, name: true, email: true, role: true, created_at: true },
         });
 
         if (!user) {
