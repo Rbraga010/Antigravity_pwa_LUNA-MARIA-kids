@@ -1,4 +1,5 @@
 
+// Restore: Recuperação da interface e conteúdos originais
 import React, { useState, useEffect, useRef } from 'react';
 import { AppSection, Product, CartItem, UserProfile, Game, CarouselItem, ContentMaterial } from './types';
 import { INITIAL_PRODUCTS, COLORING_THEMES, GAMES } from './constants';
