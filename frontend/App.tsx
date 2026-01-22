@@ -14,6 +14,7 @@ import {
   Facebook, Instagram, Twitter, Search, ShoppingCart, Home, MessageCircle, Edit3
 } from 'lucide-react';
 import RegistrationForm from './components/RegistrationForm';
+import { AdminStatsComponent } from './AdminStats';
 import { GoogleGenAI } from "@google/genai";
 
 // Swiper Imports
@@ -1921,21 +1922,8 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: 'Vendas Mês', val: 'R$ 12.450', icon: CreditCard, color: 'text-green-500', bg: 'bg-green-50' },
-          { label: 'Novos Assinantes', val: '48', icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-50' },
-          { label: 'Visitas Hoje', val: '1.240', icon: Eye, color: 'text-blue-500', bg: 'bg-blue-50' }
-        ].map((s, i) => (
-          <div key={i} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-50 space-y-4">
-            <div className={`w-12 h-12 ${s.bg} ${s.color} rounded-2xl flex items-center justify-center`}><s.icon size={24} /></div>
-            <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.label}</p>
-              <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Métricas reais via API */}
+      <AdminStatsComponent token={localStorage.getItem('authToken') || ''} />
       <div className="bg-pink-50/50 p-10 rounded-[56px] border-2 border-dashed border-pink-100 text-center mb-12">
         <Settings2 size={48} className="mx-auto text-pink-200 mb-4" />
         <h3 className="text-lg font-black text-pink-400 font-luna uppercase italic">Controle de Catálogo Ativado</h3>
