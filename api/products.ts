@@ -19,7 +19,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const products = await prisma.product.findMany({
         orderBy: { display_order: 'asc' }
       });
-      return res.status(200).json(products);
+      
+      // Transformar para formato do frontend
+      const transformed = products.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: parseFloat(p.price.toString()),
+        oldPrice: p.old_price ? parseFloat(p.old_price.toString()) : undefined,
+        image: p.image_url,
+        category: p.category,
+        description: p.description,
+        displayOrder: p.display_order
+      }));
+      
+      return res.status(200).json(transformed);
     }
 
     // Verificar autenticação para operações de escrita
@@ -39,27 +52,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST - Criar novo produto
     if (req.method === 'POST') {
-      const { name, description, price, old_price, image_url, stock, category, display_order } = req.body;
+      const { name, description, price, oldPrice, image, stock, category, displayOrder } = req.body;
 
       const product = await prisma.product.create({
         data: {
           name,
           description: description || '',
           price,
-          old_price: old_price || null,
-          image_url,
+          old_price: oldPrice || null,
+          image_url: image,
           stock: stock || 0,
           category,
-          display_order: display_order || 0
+          display_order: displayOrder || 0
         }
       });
 
-      return res.status(201).json(product);
+      // Transformar resposta
+      const transformed = {
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price.toString()),
+        oldPrice: product.old_price ? parseFloat(product.old_price.toString()) : undefined,
+        image: product.image_url,
+        category: product.category,
+        description: product.description,
+        displayOrder: product.display_order
+      };
+
+      return res.status(201).json(transformed);
     }
 
     // PUT - Atualizar produto
     if (req.method === 'PUT') {
-      const { id, name, description, price, old_price, image_url, stock, category, display_order } = req.body;
+      const { id, name, description, price, oldPrice, image, stock, category, displayOrder } = req.body;
 
       const product = await prisma.product.update({
         where: { id },
@@ -67,15 +92,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           name,
           description,
           price,
-          old_price: old_price || null,
-          image_url,
+          old_price: oldPrice || null,
+          image_url: image,
           stock,
           category,
-          display_order
+          display_order: displayOrder
         }
       });
 
-      return res.status(200).json(product);
+      // Transformar resposta
+      const transformed = {
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price.toString()),
+        oldPrice: product.old_price ? parseFloat(product.old_price.toString()) : undefined,
+        image: product.image_url,
+        category: product.category,
+        description: product.description,
+        displayOrder: product.display_order
+      };
+
+      return res.status(200).json(transformed);
     }
 
     // DELETE - Deletar produto
