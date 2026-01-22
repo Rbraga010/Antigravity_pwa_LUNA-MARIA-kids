@@ -150,7 +150,7 @@ export const getUsers = async (req: Request, res: Response) => {
             orderBy: { created_at: 'desc' }
         });
 
-        const usersWithLeadType = users.map(u => {
+        const usersWithLeadType = users.map((u: any) => {
             let leadType = 'Lead Cadastrado';
             if (u.is_subscriber) {
                 leadType = 'Lead Assinante';
