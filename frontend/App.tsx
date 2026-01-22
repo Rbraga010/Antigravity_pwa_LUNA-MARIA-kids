@@ -1321,16 +1321,21 @@ const App: React.FC = () => {
                     ) : (
                       <div className="text-center p-6 space-y-4">
                         <div className="p-4 bg-white rounded-2xl text-pink-400 mx-auto w-fit shadow-sm"><Download size={32} /></div>
-                        <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest leading-relaxed">Arraste a PNG mágica aqui ou clique para buscar</p>
+                        <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest leading-relaxed">Arraste a imagem aqui ou clique (PNG, JPG, WEBP)</p>
                       </div>
                     )}
                     <input
                       type="file"
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      accept="image/png"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Validar tamanho (máx 2MB)
+                          if (file.size > 2 * 1024 * 1024) {
+                            alert('❌ Imagem muito grande! Máximo 2MB');
+                            return;
+                          }
                           const reader = new FileReader();
                           reader.onloadend = () => {
                             setEditingProduct({ ...editingProduct, image: reader.result as string });
@@ -1340,7 +1345,7 @@ const App: React.FC = () => {
                       }}
                     />
                   </div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase italic text-center">Formato sugerido: PNG transparente para efeito flutuante.</p>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase italic text-center">Formatos: PNG, JPG, WEBP | Tamanho máx: 2MB | Ideal: 800x1000px</p>
                 </div>
 
                 {/* Form Area */}
@@ -1368,18 +1373,23 @@ const App: React.FC = () => {
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Categoria</label>
-                    <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
-                      <option value="menina-bebe">Menina Bebê</option>
-                      <option value="menina-kids">Menina Kids</option>
-                      <option value="menino-bebe">Menino Bebê</option>
-                      <option value="menino-kids">Menino Kids</option>
-                      <option value="acessorios">Acessórios</option>
+                     <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
+                      <option value="MENINA_BEBE">Menina Bebê (0-2 anos)</option>
+                      <option value="MENINA_KIDS">Menina Kids (3-8 anos)</option>
+                      <option value="MENINA_TEEN">Menina Teen (9-14 anos)</option>
+                      <option value="MENINO_BEBE">Menino Bebê (0-2 anos)</option>
+                      <option value="MENINO_KIDS">Menino Kids (3-8 anos)</option>
+                      <option value="MENINO_TEEN">Menino Teen (9-14 anos)</option>
+                      <option value="UNISSEX">Unissex</option>
+                      <option value="ACESSORIOS">Acessórios</option>
+                      <option value="CALCADOS">Calçados</option>
+                      <option value="CONJUNTOS">Conjuntos</option>
                     </select>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Tamanhos (ex: P, M, G ou 2, 4, 6)</label>
-                    <input id="product-sizes" type="text" defaultValue={editingProduct.sizes?.join(', ')} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="P, M, G" />
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Tamanhos (letras e/ou números)</label>
+                    <input id="product-sizes" type="text" defaultValue={editingProduct.sizes?.join(', ')} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="P, M, G, 2, 4, 6, 8" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1566,6 +1576,9 @@ const App: React.FC = () => {
           <span className="text-[9px] text-gray-400 font-bold ml-1">(4.9)</span>
         </div>
         <h3 className="text-xs font-black text-[#6B5A53] uppercase tracking-tighter line-clamp-1">{product.name}</h3>
+        {product.description && (
+          <p className="text-[9px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{product.description}</p>
+        )}
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <p className="text-sm font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
