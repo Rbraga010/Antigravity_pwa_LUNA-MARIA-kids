@@ -616,13 +616,16 @@ const App: React.FC = () => {
 
   const CategoryMenu = () => {
     const categories = [
-      { id: 'offers', label: 'Ofertas do Dia' },
-      { id: 'menina-bebe', label: 'Menina Bebê' },
-      { id: 'menina-kids', label: 'Menina Kids' },
-      { id: 'menino-bebe', label: 'Menino Bebê' },
-      { id: 'menino-kids', label: 'Menino Kids' },
+      { id: 'menina-bebe', label: 'Menina Bebê (0-2 anos)' },
+      { id: 'menina-kids', label: 'Menina Kids (3-8 anos)' },
+      { id: 'menina-teen', label: 'Menina Teen (9-14 anos)' },
+      { id: 'menino-bebe', label: 'Menino Bebê (0-2 anos)' },
+      { id: 'menino-kids', label: 'Menino Kids (3-8 anos)' },
+      { id: 'menino-teen', label: 'Menino Teen (9-14 anos)' },
+      { id: 'unissex', label: 'Unissex' },
       { id: 'acessorios', label: 'Acessórios' },
-      { id: 'complementos', label: 'Complementos' }
+      { id: 'calcados', label: 'Calçados' },
+      { id: 'conjuntos', label: 'Conjuntos' }
     ];
 
     const scrollTo = (id: string) => {
@@ -1328,39 +1331,16 @@ const App: React.FC = () => {
                       type="file"
                       className="absolute inset-0 opacity-0 cursor-pointer"
                       accept="image/png,image/jpeg,image/jpg,image/webp"
-                      onChange={async (e) => {
+                      onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Validar tamanho (máx 2MB)
                           if (file.size > 2 * 1024 * 1024) {
                             alert('❌ Imagem muito grande! Máximo 2MB');
                             return;
                           }
-                          
-                          setLoading(true);
                           const reader = new FileReader();
-                          reader.onloadend = async () => {
-                            try {
-                              // Upload para servidor
-                              const response = await fetch('/api/upload-image', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ image: reader.result })
-                              });
-                              
-                              if (response.ok) {
-                                const data = await response.json();
-                                setEditingProduct({ ...editingProduct, image: data.url });
-                                setMascotMsg('✅ Imagem carregada com sucesso!');
-                              } else {
-                                throw new Error('Falha no upload');
-                              }
-                            } catch (error) {
-                              setMascotMsg('❌ Erro ao fazer upload da imagem');
-                              setEditingProduct({ ...editingProduct, image: reader.result as string });
-                            } finally {
-                              setLoading(false);
-                            }
+                          reader.onloadend = () => {
+                            setEditingProduct({ ...editingProduct, image: reader.result as string });
                           };
                           reader.readAsDataURL(file);
                         }
@@ -1780,8 +1760,15 @@ const App: React.FC = () => {
         />
         <DepartmentCarousel
           id="menina-kids"
-          title="🎀 Menina Kids"
+          title="🎀 Menina Kids (3-8 anos)"
           products={getSortedProducts(products.filter(p => p.category === 'menina-kids'))}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
+        <DepartmentCarousel
+          id="menina-teen"
+          title="🎀 Menina Teen (9-14 anos)"
+          products={getSortedProducts(products.filter(p => p.category === 'menina-teen'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1789,19 +1776,34 @@ const App: React.FC = () => {
         {/* Bloco Menino */}
         <DepartmentCarousel
           id="menino-bebe"
-          title="🚀 Menino Bebê"
+          title="🚀 Menino Bebê (0-2 anos)"
           products={getSortedProducts(products.filter(p => p.category === 'menino-bebe'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="menino-kids"
-          title="🚀 Menino Kids"
+          title="🚀 Menino Kids (3-8 anos)"
           products={getSortedProducts(products.filter(p => p.category === 'menino-kids'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
+        <DepartmentCarousel
+          id="menino-teen"
+          title="🚀 Menino Teen (9-14 anos)"
+          products={getSortedProducts(products.filter(p => p.category === 'menino-teen'))}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
 
+        {/* Outras Categorias */}
+        <DepartmentCarousel
+          id="unissex"
+          title="🌈 Unissex"
+          products={getSortedProducts(products.filter(p => p.category === 'unissex'))}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
         <DepartmentCarousel
           id="acessorios"
           title="✨ Acessórios"
@@ -1810,9 +1812,16 @@ const App: React.FC = () => {
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
-          id="complementos"
-          title="🎁 Complementos"
-          products={getSortedProducts(products.filter(p => p.category === 'complementos'))}
+          id="calcados"
+          title="👟 Calçados"
+          products={getSortedProducts(products.filter(p => p.category === 'calcados'))}
+          isAdmin={isAdminEditing}
+          onEdit={(p) => setEditingProduct(p)}
+        />
+        <DepartmentCarousel
+          id="conjuntos"
+          title="🎁 Conjuntos"
+          products={getSortedProducts(products.filter(p => p.category === 'conjuntos'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
