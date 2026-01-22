@@ -783,7 +783,7 @@ const App: React.FC = () => {
   const handleRegister = async (registrationData: any) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registrationData)
@@ -796,14 +796,18 @@ const App: React.FC = () => {
         setIsSubscriber(!!userData.is_subscriber);
         setShowLoginModal(false);
         setMascotMsg(`Bem-vinda à família Luna Maria, ${userData.name}! ✨`);
+        alert(`✅ Cadastro realizado com sucesso! Bem-vinda, ${userData.name}!`);
         return true;
       } else {
         const errorData = await response.json();
-        setMascotMsg(errorData.message || 'Erro ao criar conta.');
+        setMascotMsg(errorData.error || 'Erro ao criar conta.');
+        alert('Erro ao cadastrar: ' + (errorData.error || 'Tente novamente'));
         return false;
       }
     } catch (error) {
-      setMascotMsg('Erro ao criar conta. Tente novamente.');
+      const msg = 'Erro ao criar conta. Tente novamente.';
+      setMascotMsg(msg);
+      alert(msg);
       return false;
     } finally {
       setLoading(false);
@@ -1220,7 +1224,7 @@ const App: React.FC = () => {
 
                       try {
                         setLoading(true);
-                        const response = await fetch('/api/auth/login', {
+                        const response = await fetch('/api/login', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email, password })
