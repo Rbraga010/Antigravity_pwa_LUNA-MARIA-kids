@@ -94,19 +94,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'ID do produto não fornecido' });
       }
 
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (price !== undefined) updateData.price = price;
+      if (old_price !== undefined) updateData.old_price = old_price;
+      if (image_url !== undefined) updateData.image_url = image_url;
+      if (stock !== undefined) updateData.stock = stock;
+      if (category !== undefined) updateData.category = category;
+      if (display_order !== undefined) updateData.display_order = display_order;
+      if (sizes !== undefined) updateData.sizes = sizes;
+
       const product = await prisma.product.update({
         where: { id: productId as string },
-        data: {
-          name,
-          description,
-          price,
-          old_price: old_price || null,
-          image_url,
-          stock,
-          category,
-          display_order: display_order,
-          sizes: sizes
-        }
+        data: updateData
       });
 
       // Transformar resposta
