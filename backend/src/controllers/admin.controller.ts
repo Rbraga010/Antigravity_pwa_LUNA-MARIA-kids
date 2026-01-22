@@ -5,12 +5,23 @@ import prisma from "../prisma.js";
 
 export const createProduct = async (req: Request, res: Response) => {
     try {
-        const { name, description, price, old_price, image_url, stock, category, display_order } = req.body;
+        const { name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
         const product = await prisma.product.create({
-            data: { name, description, price, old_price, image_url, stock, category, display_order: display_order || 0 }
+            data: {
+                name,
+                description,
+                price,
+                old_price,
+                image_url,
+                stock: stock !== undefined ? stock : 0,
+                category,
+                display_order: display_order || 0,
+                sizes: sizes || []
+            }
         });
         return res.status(201).json(product);
     } catch (error) {
+        console.error("Erro ao criar produto:", error);
         return res.status(500).json({ message: "Erro ao criar produto", error });
     }
 };
@@ -18,13 +29,25 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const data = req.body;
+        const { name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
+
         const product = await prisma.product.update({
             where: { id: id as string },
-            data
+            data: {
+                name,
+                description,
+                price,
+                old_price,
+                image_url,
+                stock,
+                category,
+                display_order,
+                sizes
+            }
         });
         return res.json(product);
     } catch (error) {
+        console.error("Erro ao atualizar produto:", error);
         return res.status(500).json({ message: "Erro ao atualizar produto", error });
     }
 };

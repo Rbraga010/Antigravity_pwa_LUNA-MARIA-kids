@@ -97,6 +97,18 @@ const App: React.FC = () => {
     return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
   };
 
+  const mapBackendProductToFrontend = (p: any): Product => ({
+    id: p.id,
+    name: p.name,
+    price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+    oldPrice: p.old_price ? (typeof p.old_price === 'string' ? parseFloat(p.old_price) : p.old_price) : undefined,
+    image: p.image_url,
+    category: p.category,
+    description: p.description,
+    displayOrder: p.display_order,
+    sizes: p.sizes || []
+  });
+
   // Load initial data and check authentication
   useEffect(() => {
     const loadData = async () => {
@@ -120,7 +132,7 @@ const App: React.FC = () => {
         const productsRes = await fetch('/api/products');
         if (productsRes.ok) {
           const productsData = await productsRes.json();
-          setProducts(productsData);
+          setProducts(productsData.map(mapBackendProductToFrontend));
         } else {
           // Fallback to INITIAL_PRODUCTS if API fails
           setProducts(INITIAL_PRODUCTS);
@@ -282,8 +294,8 @@ const App: React.FC = () => {
   const handleSaveProduct = async (productData: Product) => {
     try {
       setLoading(true);
-      const method = productData.id ? 'PUT' : 'POST';
-      const url = '/api/products';
+      const method = productData.id ? 'PATCH' : 'POST';
+      const url = productData.id ? `/api/admin/products/${productData.id}` : '/api/admin/products';
 
       const response = await fetch(url, {
         method,
@@ -293,14 +305,15 @@ const App: React.FC = () => {
 
       if (response.ok) {
         const savedProduct = await response.json();
+        const mappedProduct = mapBackendProductToFrontend(savedProduct);
         setProducts(prev => {
-          const index = prev.findIndex(p => p.id === savedProduct.id);
+          const index = prev.findIndex(p => p.id === mappedProduct.id);
           if (index >= 0) {
             const updated = [...prev];
-            updated[index] = savedProduct;
+            updated[index] = mappedProduct;
             return updated;
           }
-          return [...prev, savedProduct];
+          return [...prev, mappedProduct];
         });
         setEditingProduct(null);
         setMascotMsg('Produto salvo com sucesso! ✨');
@@ -1360,6 +1373,11 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Tamanhos (ex: P, M, G ou 2, 4, 6)</label>
+                    <input id="product-sizes" type="text" defaultValue={editingProduct.sizes?.join(', ')} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="P, M, G" />
+                  </div>
+
+                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Ordem de Exibição (0 = Início)</label>
                     <input id="product-order" type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
                   </div>
@@ -1372,11 +1390,12 @@ const App: React.FC = () => {
                     const formData: any = {
                       name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name,
                       price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
-                      oldPrice: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
+                      old_price: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
                       category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category,
-                      displayOrder: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
-                      image: editingProduct.image || 'https://via.placeholder.com/800x1000',
-                      description: editingProduct.description || ''
+                      display_order: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
+                      image_url: editingProduct.image || 'https://via.placeholder.com/800x1000',
+                      description: editingProduct.description || '',
+                      sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || []
                     };
                     if (editingProduct.id) formData.id = editingProduct.id;
                     handleSaveProduct(formData);
@@ -1544,6 +1563,13 @@ const App: React.FC = () => {
           </div>
           <p className="text-[9px] font-bold text-gray-400 uppercase italic">Ou 3x de R$ {(product.price / 3).toFixed(2)}</p>
         </div>
+        {product.sizes && product.sizes.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-1">
+            {product.sizes.map(s => (
+              <span key={s} className="px-2 py-0.5 bg-gray-50 text-[8px] font-black text-gray-400 rounded-md border border-gray-100 uppercase">{s}</span>
+            ))}
+          </div>
+        )}
         <div className="pt-2 flex flex-col gap-2">
           <button
             onClick={() => onTryOn(product)}
