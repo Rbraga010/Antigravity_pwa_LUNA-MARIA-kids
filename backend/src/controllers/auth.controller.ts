@@ -28,11 +28,18 @@ export const register = async (req: Request, res: Response) => {
                 num_children: numChildren,
                 role,
                 children: {
-                    create: childrenDetails?.map((child: any) => ({
-                        name: child.name,
-                        birth_date: new Date(child.birthDate),
-                        gender: child.gender
-                    }))
+                    create: childrenDetails?.map((child: any) => {
+                        const birthDate = child.birthDate ? new Date(child.birthDate) : null;
+                        // Validate date to avoid DB errors
+                        if (!birthDate || isNaN(birthDate.getTime())) {
+                            return undefined; // Skip invalid dates
+                        }
+                        return {
+                            name: child.name,
+                            birth_date: birthDate,
+                            gender: child.gender
+                        };
+                    }).filter(Boolean) // Filter out undefined entries
                 }
             },
             include: { children: true }
