@@ -512,6 +512,13 @@ const App: React.FC = () => {
 
   // --- UI COMPONENTS ---
 
+  // Auto-fetch users when Admin Dashboard is active
+  useEffect(() => {
+    if (section === AppSection.ADMIN_DASHBOARD) {
+      fetchAllUsers();
+    }
+  }, [section]);
+
   const TopBar = () => (
     <div className="hidden lg:flex h-8 bg-[#FAF8F5] border-b border-gray-100 px-6 items-center justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest z-[60]">
       <div className="flex gap-4">
@@ -838,7 +845,7 @@ const App: React.FC = () => {
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 0;
                     setNumChildren(val);
-                    setChildrenDetails(Array(val).fill({ name: '', birthDate: '' }));
+                    setChildrenDetails(Array.from({ length: val }, () => ({ name: '', birthDate: '' })));
                   }}
                   className="px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none"
                 >
@@ -1368,7 +1375,7 @@ const App: React.FC = () => {
                       onChange={(e) => {
                         const val = parseInt(e.target.value) || 0;
                         setNumChildren(val);
-                        setChildrenDetails(Array(val).fill({ name: '', birthDate: '' }));
+                        setChildrenDetails(Array.from({ length: val }, () => ({ name: '', birthDate: '' })));
                       }}
                       className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
                     >
