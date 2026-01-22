@@ -543,8 +543,7 @@ const App: React.FC = () => {
 
   const Header = () => (
     <header className="sticky top-0 left-0 right-0 h-20 bg-white border-b border-gray-100 z-[60] px-4 lg:px-8 flex items-center justify-between gap-4 lg:gap-8 shadow-sm lg:shadow-none">
-      {/* Mobile Menu Button */}
-      <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-[#6B5A53]">
+      <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-[#6B5A53]">
         <Menu size={24} />
       </button>
 
@@ -744,7 +743,7 @@ const App: React.FC = () => {
             sub: 'Diversão que educa. IA que entende a infância.',
             d: 'Jogos criativos, desafios e desenhos com IA — sem tela vazia, sem culpa.',
             color: 'bg-pink-400',
-            onClick: () => setShowConstructionPopup(true)
+            section: AppSection.KIDS
           },
           {
             icon: UsersIcon,
@@ -752,7 +751,7 @@ const App: React.FC = () => {
             sub: 'Onde vínculos se fortalecem sem esforço.',
             d: 'Atividades e rituais pra criar famílias inabaláveis. A Luna te ajuda a ser presente, mesmo na correria.',
             color: 'bg-orange-400',
-            onClick: () => setShowConstructionPopup(true)
+            section: AppSection.FAMILY_MOMENT
           },
           {
             icon: Moon,
@@ -1409,7 +1408,7 @@ const App: React.FC = () => {
                   </select>
                 </div>
 
-                <button 
+                <button
                   onClick={() => {
                     const formData: any = {
                       image_url: editingCarouselItem.image_url || 'https://via.placeholder.com/1920x640',
@@ -1465,7 +1464,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => {
                     const formData: any = {
                       title: (document.querySelector('input[placeholder="Título do Material"]') as HTMLInputElement)?.value || '',
@@ -1956,96 +1955,96 @@ const App: React.FC = () => {
     <>
       <HelpButton section="users" />
       <div className="pt-24 p-6 lg:p-12 space-y-12 animate-in fade-in duration-500 min-h-screen max-w-[1200px] mx-auto outline-none">
-      <div className="flex justify-between items-end border-b border-gray-100 pb-8">
-        <div className="space-y-2">
-          <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Painel da Luna ✨</h2>
-          <p className="text-gray-400 font-bold italic">Gestão da Loja e Conteúdos</p>
-        </div>
-        <button onClick={() => setIsAdminEditing(!isAdminEditing)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${isAdminEditing ? 'bg-pink-400 text-white' : 'bg-white text-pink-400 border border-pink-100'}`}>
-          {isAdminEditing ? 'Sair do Modo Edição' : 'Entrar no Modo Edição'}
-        </button>
-      </div>
-
-      {/* Métricas reais via API */}
-      <AdminStatsComponent token={localStorage.getItem('authToken') || ''} />
-      <div className="bg-pink-50/50 p-10 rounded-[56px] border-2 border-dashed border-pink-100 text-center mb-12">
-        <Settings2 size={48} className="mx-auto text-pink-200 mb-4" />
-        <h3 className="text-lg font-black text-pink-400 font-luna uppercase italic">Controle de Catálogo Ativado</h3>
-        <p className="text-xs font-bold text-pink-300 mt-2 italic">Navegue pelas seções e use os ícones de edição para alterar conteúdos.</p>
-      </div>
-
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[#6B5A53]">
-            <UsersIcon size={24} />
-            <h3 className="text-xl font-black uppercase italic tracking-tighter">Visão Geral de Clientes ✨</h3>
+        <div className="flex justify-between items-end border-b border-gray-100 pb-8">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Painel da Luna ✨</h2>
+            <p className="text-gray-400 font-bold italic">Gestão da Loja e Conteúdos</p>
           </div>
-          <button onClick={fetchAllUsers} className="p-3 bg-white shadow-sm rounded-full text-[#BBD4E8] hover:text-pink-400 transition-all">
-            <RefreshCw size={20} />
+          <button onClick={() => setIsAdminEditing(!isAdminEditing)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${isAdminEditing ? 'bg-pink-400 text-white' : 'bg-white text-pink-400 border border-pink-100'}`}>
+            {isAdminEditing ? 'Sair do Modo Edição' : 'Entrar no Modo Edição'}
           </button>
         </div>
 
-        <div className="bg-white rounded-[48px] shadow-sm border border-gray-50 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/50">
-                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Contato</th>
-                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Esteira</th>
-                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {allUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="p-12 text-center">
-                      <p className="text-xs font-bold text-gray-400 italic">Clique em atualizar para carregar a lista de clientes.</p>
-                    </td>
+        {/* Métricas reais via API */}
+        <AdminStatsComponent token={localStorage.getItem('authToken') || ''} />
+        <div className="bg-pink-50/50 p-10 rounded-[56px] border-2 border-dashed border-pink-100 text-center mb-12">
+          <Settings2 size={48} className="mx-auto text-pink-200 mb-4" />
+          <h3 className="text-lg font-black text-pink-400 font-luna uppercase italic">Controle de Catálogo Ativado</h3>
+          <p className="text-xs font-bold text-pink-300 mt-2 italic">Navegue pelas seções e use os ícones de edição para alterar conteúdos.</p>
+        </div>
+
+        <div className="space-y-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 text-[#6B5A53]">
+              <UsersIcon size={24} />
+              <h3 className="text-xl font-black uppercase italic tracking-tighter">Visão Geral de Clientes ✨</h3>
+            </div>
+            <button onClick={fetchAllUsers} className="p-3 bg-white shadow-sm rounded-full text-[#BBD4E8] hover:text-pink-400 transition-all">
+              <RefreshCw size={20} />
+            </button>
+          </div>
+
+          <div className="bg-white rounded-[48px] shadow-sm border border-gray-50 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/50">
+                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
+                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Contato</th>
+                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Esteira</th>
+                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
                   </tr>
-                ) : (
-                  allUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-8">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-400 text-sm font-black uppercase">
-                            {u.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-[#6B5A53]">{u.name}</p>
-                            <p className="text-[10px] text-gray-400 font-bold">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-8">
-                        <p className="text-xs font-bold text-gray-500">{u.phone || 'N/A'}</p>
-                        <p className="text-[10px] text-gray-300 font-bold">{u._count?.children || 0} filhos cadastrados</p>
-                      </td>
-                      <td className="p-8">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${u.leadType === 'Lead Assinante' ? 'bg-purple-50 text-purple-400' :
-                          u.leadType === 'Lead Cliente' ? 'bg-green-50 text-green-400' :
-                            'bg-blue-50 text-blue-400'
-                          }`}>
-                          <span className="text-[9px] font-black uppercase tracking-widest">{u.leadType || 'Lead Cadastrado'}</span>
-                        </div>
-                      </td>
-                      <td className="p-8">
-                        <button
-                          onClick={() => toggleUserSubscription(u.id, u.is_subscriber)}
-                          className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${u.is_subscriber ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400' : 'bg-purple-400 text-white shadow-lg hover:scale-105'}`}
-                        >
-                          {u.is_subscriber ? 'Remover Clube' : 'Tornar Assinante'}
-                        </button>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {allUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-12 text-center">
+                        <p className="text-xs font-bold text-gray-400 italic">Clique em atualizar para carregar a lista de clientes.</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    allUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-gray-50/30 transition-colors">
+                        <td className="p-8">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-400 text-sm font-black uppercase">
+                              {u.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-[#6B5A53]">{u.name}</p>
+                              <p className="text-[10px] text-gray-400 font-bold">{u.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-8">
+                          <p className="text-xs font-bold text-gray-500">{u.phone || 'N/A'}</p>
+                          <p className="text-[10px] text-gray-300 font-bold">{u._count?.children || 0} filhos cadastrados</p>
+                        </td>
+                        <td className="p-8">
+                          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${u.leadType === 'Lead Assinante' ? 'bg-purple-50 text-purple-400' :
+                            u.leadType === 'Lead Cliente' ? 'bg-green-50 text-green-400' :
+                              'bg-blue-50 text-blue-400'
+                            }`}>
+                            <span className="text-[9px] font-black uppercase tracking-widest">{u.leadType || 'Lead Cadastrado'}</span>
+                          </div>
+                        </td>
+                        <td className="p-8">
+                          <button
+                            onClick={() => toggleUserSubscription(u.id, u.is_subscriber)}
+                            className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${u.is_subscriber ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400' : 'bg-purple-400 text-white shadow-lg hover:scale-105'}`}
+                          >
+                            {u.is_subscriber ? 'Remover Clube' : 'Tornar Assinante'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 

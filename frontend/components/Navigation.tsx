@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Gamepad2, Heart, User } from 'lucide-react';
+import { Home, ShoppingBag, Gamepad2, Heart, User, Moon } from 'lucide-react';
 import { AppSection } from '../types';
 
 interface NavigationProps {
@@ -17,6 +17,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, onC
     { id: AppSection.SHOP, label: 'Loja', icon: ShoppingBag, color: 'text-purple-400' },
     { id: AppSection.KIDS, label: 'Kids', icon: Gamepad2, color: 'text-pink-400' },
     { id: AppSection.FAMILY_MOMENT, label: 'Família', icon: Heart, color: 'text-orange-400' },
+    { id: 'clube', label: 'Clube', icon: Moon, color: 'text-indigo-400', onClick: onClubeClick },
     { id: AppSection.MY_ACCOUNT, label: 'Conta', icon: User, color: 'text-green-400', onClick: onAccountClick },
   ];
 

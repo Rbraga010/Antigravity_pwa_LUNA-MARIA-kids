@@ -67,14 +67,15 @@
 
 .animated-gradient-text {
     background: linear-gradient(to right,
-            #4a3b35 20%,
-            /* Darker Brown */
-            #3b5a74 40%,
-            /* Darker Blue */
-            #8f4b66 60%,
-            /* Darker Pink */
-            #3b5a74 80%,
-            #4a3b35 100%);
+            #FF69B4 20%,
+            /* Hot Pink */
+            #89CFF0 40%,
+            /* Baby Blue */
+            #FF1493 60%,
+            /* Deep Pink */
+            #00BFFF 80%,
+            /* Deep Sky Blue */
+            #FF69B4 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
