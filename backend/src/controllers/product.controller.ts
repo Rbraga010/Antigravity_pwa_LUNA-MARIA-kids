@@ -20,7 +20,7 @@ export const getProductById = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         const product = await prisma.product.findUnique({
-            where: { id },
+            where: { id: String(id) },
         });
 
         if (!product) {

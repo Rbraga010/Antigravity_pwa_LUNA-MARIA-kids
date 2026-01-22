@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 export const register = async (req: Request, res: Response) => {
     try {
         const { name, email, password, phone, numChildren, childrenDetails } = req.body;
+        console.log("RECEIVED REGISTER DATA:", { name, email, phone, numChildren, childrenDetails }); // DEBUG LOG
 
         const userExists = await prisma.user.findUnique({ where: { email } });
         if (userExists) {
@@ -58,7 +59,8 @@ export const register = async (req: Request, res: Response) => {
             token
         });
     } catch (error) {
-        return res.status(500).json({ message: "Erro ao registrar usuário", error });
+        console.error("REGISTRATION ERROR:", error); // DEBUG LOG
+        return res.status(500).json({ message: "Erro ao registrar usuário", error: String(error) });
     }
 };
 
