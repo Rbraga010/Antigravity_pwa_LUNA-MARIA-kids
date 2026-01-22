@@ -106,7 +106,9 @@ const App: React.FC = () => {
     category: p.category,
     description: p.description,
     displayOrder: p.display_order,
-    sizes: p.sizes || []
+    sizes: p.sizes || [],
+    is_featured: p.is_featured || false,
+    stock: p.stock
   });
 
   // Load initial data and check authentication
@@ -1279,7 +1281,7 @@ const App: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Image Upload Area */}
-TROCAR LINHAS 1314-1351 POR:
+                TROCAR LINHAS 1314-1351 POR:
 
                 <div className="space-y-4">
                   <FormatTips type="product" />
@@ -1327,7 +1329,7 @@ TROCAR LINHAS 1314-1351 POR:
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Categoria</label>
-                     <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
+                    <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
                       <option value="menina-bebe">Menina Bebê (0-2 anos)</option>
                       <option value="menina-kids">Menina Kids (3-8 anos)</option>
                       <option value="menina-teen">Menina Teen (9-14 anos)</option>
