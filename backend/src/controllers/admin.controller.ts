@@ -20,7 +20,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         const { id } = req.params;
         const data = req.body;
         const product = await prisma.product.update({
-            where: { id },
+            where: { id: id as string },
             data
         });
         return res.json(product);
@@ -32,7 +32,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 export const deleteProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.product.delete({ where: { id } });
+        await prisma.product.delete({ where: { id: id as string } });
         return res.status(204).send();
     } catch (error) {
         return res.status(500).json({ message: "Erro ao excluir produto", error });
@@ -64,7 +64,7 @@ export const updateCarouselItem = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const data = req.body;
-        const item = await prisma.carouselItem.update({ where: { id }, data });
+        const item = await prisma.carouselItem.update({ where: { id: id as string }, data });
         return res.json(item);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao atualizar item de carrossel", error });
@@ -74,7 +74,7 @@ export const updateCarouselItem = async (req: Request, res: Response) => {
 export const deleteCarouselItem = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.carouselItem.delete({ where: { id } });
+        await prisma.carouselItem.delete({ where: { id: id as string } });
         return res.status(204).send();
     } catch (error) {
         return res.status(500).json({ message: "Erro ao excluir item de carrossel", error });
@@ -110,7 +110,7 @@ export const updateMaterial = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const data = req.body;
-        const item = await prisma.contentMaterial.update({ where: { id }, data });
+        const item = await prisma.contentMaterial.update({ where: { id: id as string }, data });
         return res.json(item);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao atualizar material", error });
@@ -120,9 +120,65 @@ export const updateMaterial = async (req: Request, res: Response) => {
 export const deleteMaterial = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.contentMaterial.delete({ where: { id } });
+        await prisma.contentMaterial.delete({ where: { id: id as string } });
         return res.status(204).send();
     } catch (error) {
         return res.status(500).json({ message: "Erro ao excluir material", error });
+    }
+};
+
+// --- USUÁRIOS ---
+
+export const getUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                is_subscriber: true,
+                created_at: true,
+                _count: {
+                    select: {
+                        children: true,
+                        orders: true
+                    }
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        const usersWithLeadType = users.map(u => {
+            let leadType = 'Lead Cadastrado';
+            if (u.is_subscriber) {
+                leadType = 'Lead Assinante';
+            } else if (u._count.orders > 0) {
+                leadType = 'Lead Cliente';
+            }
+            return {
+                ...u,
+                leadType
+            };
+        });
+
+        return res.json(usersWithLeadType);
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao buscar usuários", error });
+    }
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { role, is_subscriber } = req.body;
+        const user = await prisma.user.update({
+            where: { id: id as string },
+            data: { role, is_subscriber }
+        });
+        return res.json(user);
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao atualizar usuário", error });
     }
 };

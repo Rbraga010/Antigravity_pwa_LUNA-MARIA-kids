@@ -34,9 +34,12 @@ export interface ContentMaterial {
 }
 
 export interface UserProfile {
+  id: string;
   name: string;
   email?: string;
   role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  is_subscriber?: boolean;
+  leadType?: string;
   tokens: number;
   medals: string[];
   drawingsCompleted: number;

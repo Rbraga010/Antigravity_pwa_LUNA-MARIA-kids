@@ -4,13 +4,18 @@ import { superAdminMiddleware } from "../middlewares/admin.middleware.js";
 import {
     createProduct, updateProduct, deleteProduct,
     getCarousels, createCarouselItem, updateCarouselItem, deleteCarouselItem,
-    getMaterials, createMaterial, updateMaterial, deleteMaterial
+    getMaterials, createMaterial, updateMaterial, deleteMaterial,
+    getUsers, updateUser
 } from "../controllers/admin.controller.js";
 
 const router = Router();
 
 // Todas as rotas abaixo requerem login E ser SUPER_ADMIN
 router.use(authMiddleware, superAdminMiddleware);
+
+// Usuários
+router.get("/users", getUsers);
+router.patch("/users/:id", updateUser);
 
 // Produtos
 router.post("/products", createProduct);

@@ -81,6 +81,7 @@ const App: React.FC = () => {
   const [sortOption, setSortOption] = useState<'default' | 'price_asc' | 'price_desc' | 'newest'>('default');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [allUsers, setAllUsers] = useState<any[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -105,6 +106,7 @@ const App: React.FC = () => {
           if (userRes.ok) {
             const userData = await userRes.json();
             setUser(prev => ({ ...prev, ...userData }));
+            setIsSubscriber(!!userData.is_subscriber);
           } else {
             localStorage.removeItem('authToken');
           }
@@ -245,6 +247,34 @@ const App: React.FC = () => {
   };
 
   // API Handlers for Admin Operations
+  const fetchAllUsers = async () => {
+    try {
+      const res = await fetch('/api/admin/users', { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setAllUsers(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+    }
+  };
+
+  const toggleUserSubscription = async (userId: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ is_subscriber: !currentStatus })
+      });
+      if (res.ok) {
+        fetchAllUsers();
+        setMascotMsg('Status do usuário atualizado! ✨');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao atualizar usuário.');
+    }
+  };
+
   const handleSaveProduct = async (productData: Product) => {
     try {
       setLoading(true);
@@ -742,10 +772,45 @@ const App: React.FC = () => {
     </section>
   );
 
+  const handleRegister = async (registrationData: any) => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationData)
+      });
+
+      if (response.ok) {
+        const { token, user: userData } = await response.json();
+        localStorage.setItem('authToken', token);
+        setUser(prev => ({ ...prev, ...userData }));
+        setIsSubscriber(!!userData.is_subscriber);
+        setShowLoginModal(false);
+        setMascotMsg(`Bem-vinda à família Luna Maria, ${userData.name}! ✨`);
+        return true;
+      } else {
+        const errorData = await response.json();
+        setMascotMsg(errorData.message || 'Erro ao criar conta.');
+        return false;
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao criar conta. Tente novamente.');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const HomeHero = () => {
     const toggleProfile = (p: string) => {
       setChildrenProfiles(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
     };
+
+    const [heroName, setHeroName] = useState('');
+    const [heroEmail, setHeroEmail] = useState('');
+    const [heroPhone, setHeroPhone] = useState('');
+    const [heroPassword, setHeroPassword] = useState('');
 
     return (
       <section className="px-6 lg:px-20 py-12 lg:py-24 bg-cream flex flex-col lg:flex-row gap-12 lg:gap-20 items-center overflow-hidden">
@@ -760,11 +825,12 @@ const App: React.FC = () => {
 
         <div className="w-full lg:max-w-md bg-white p-8 lg:p-10 rounded-[48px] shadow-2xl border border-pink-50 relative">
           <div className="space-y-6">
-            <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic text-center">Faça seu cadastro e acesse uma Lua de Ofertas todos os dias.</h3>
+            <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase italic text-center leading-tight">Faça seu cadastro e acesse uma Lua de Ofertas todos os dias.</h3>
             <div className="space-y-4 text-left overflow-y-auto max-h-[500px] pr-2 scrollbar-hide">
-              <input type="text" placeholder="Seu Nome" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
-              <input type="email" placeholder="E-mail" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
-              <input type="tel" placeholder="Telefone" className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+              <input type="text" placeholder="Seu Nome" value={heroName} onChange={e => setHeroName(e.target.value)} className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+              <input type="email" placeholder="E-mail" value={heroEmail} onChange={e => setHeroEmail(e.target.value)} className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+              <input type="tel" placeholder="Telefone" value={heroPhone} onChange={e => setHeroPhone(e.target.value)} className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+              <input type="password" placeholder="Criar Senha" value={heroPassword} onChange={e => setHeroPassword(e.target.value)} className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
 
               <div className="grid grid-cols-1 gap-4">
                 <select
@@ -814,8 +880,25 @@ const App: React.FC = () => {
                 </div>
               ))}
 
-              <button className="w-full py-5 bg-pink-400 text-white rounded-[28px] font-black uppercase text-xs tracking-widest shadow-lg shadow-pink-200 hover:scale-[1.02] active:scale-95 transition-all mt-6">
-                Quero Participar ✨
+              <button
+                onClick={() => {
+                  if (!heroName || !heroEmail || !heroPassword) {
+                    setMascotMsg('Nome, email e senha são obrigatórios!');
+                    return;
+                  }
+                  handleRegister({
+                    name: heroName,
+                    email: heroEmail,
+                    password: heroPassword,
+                    phone: heroPhone,
+                    numChildren,
+                    childrenDetails
+                  });
+                }}
+                disabled={loading}
+                className="w-full py-5 bg-pink-400 text-white rounded-[28px] font-black uppercase text-xs tracking-widest shadow-lg shadow-pink-200 hover:scale-[1.02] active:scale-95 transition-all mt-6 disabled:opacity-50"
+              >
+                {loading ? 'Cadastrando...' : 'Quero Participar ✨'}
               </button>
             </div>
           </div>
@@ -1225,6 +1308,7 @@ const App: React.FC = () => {
                           const { token, user: userData } = await response.json();
                           localStorage.setItem('authToken', token);
                           setUser(prev => ({ ...prev, ...userData }));
+                          setIsSubscriber(!!userData.is_subscriber);
                           setShowLoginModal(false);
                           setMascotMsg(`Bem-vinda de volta, ${userData.name}! ✨`);
                         } else {
@@ -1251,7 +1335,7 @@ const App: React.FC = () => {
                   <p className="text-xs font-bold text-gray-400 italic">Junte-se à família Luna Maria</p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Nome Completo</label>
                     <input id="register-name" type="text" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Maria Silva" />
@@ -1260,6 +1344,11 @@ const App: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Email</label>
                     <input id="register-email" type="email" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="seu@email.com" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Telefone / WhatsApp</label>
+                    <input id="register-phone" type="tel" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="(11) 99999-9999" />
                   </div>
 
                   <div className="space-y-2">
@@ -1272,58 +1361,88 @@ const App: React.FC = () => {
                     <input id="register-password-confirm" type="password" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Digite novamente" />
                   </div>
 
-                  <button
-                    onClick={async () => {
-                      const name = (document.querySelector('#register-name') as HTMLInputElement)?.value;
-                      const email = (document.querySelector('#register-email') as HTMLInputElement)?.value;
-                      const password = (document.querySelector('#register-password') as HTMLInputElement)?.value;
-                      const passwordConfirm = (document.querySelector('#register-password-confirm') as HTMLInputElement)?.value;
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Quantos Filhos?</label>
+                    <select
+                      value={numChildren}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setNumChildren(val);
+                        setChildrenDetails(Array(val).fill({ name: '', birthDate: '' }));
+                      }}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
+                    >
+                      <option value="0">Selecione...</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4+</option>
+                    </select>
+                  </div>
 
-                      if (!name || !email || !password || !passwordConfirm) {
-                        setMascotMsg('Preencha todos os campos!');
-                        return;
-                      }
-
-                      if (password !== passwordConfirm) {
-                        setMascotMsg('As senhas não coincidem!');
-                        return;
-                      }
-
-                      if (password.length < 6) {
-                        setMascotMsg('Senha deve ter no mínimo 6 caracteres!');
-                        return;
-                      }
-
-                      try {
-                        setLoading(true);
-                        const response = await fetch('/api/auth/register', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ name, email, password })
-                        });
-
-                        if (response.ok) {
-                          const { token, user: userData } = await response.json();
-                          localStorage.setItem('authToken', token);
-                          setUser(prev => ({ ...prev, ...userData }));
-                          setShowLoginModal(false);
-                          setMascotMsg(`Bem-vinda à família Luna Maria, ${userData.name}! ✨`);
-                        } else {
-                          const errorData = await response.json();
-                          setMascotMsg(errorData.message || 'Erro ao criar conta.');
-                        }
-                      } catch (error) {
-                        setMascotMsg('Erro ao criar conta. Tente novamente.');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
-                    disabled={loading}
-                    className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                  >
-                    {loading ? 'Criando...' : 'Criar Conta ✨'}
-                  </button>
+                  {childrenDetails.map((child, idx) => (
+                    <div key={idx} className="space-y-3 p-5 bg-gray-50/50 rounded-3xl border border-gray-100 animate-in slide-in-from-top duration-300">
+                      <p className="text-[10px] font-black uppercase text-[#BBD4E8] tracking-widest pl-1">Filho(a) {idx + 1}</p>
+                      <input
+                        type="text"
+                        placeholder="Nome do filho(a)"
+                        className="w-full px-5 py-3 rounded-2xl bg-white border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"
+                        value={child.name}
+                        onChange={(e) => {
+                          const newDetails = [...childrenDetails];
+                          newDetails[idx] = { ...newDetails[idx], name: e.target.value };
+                          setChildrenDetails(newDetails);
+                        }}
+                      />
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold text-gray-400 pl-1">Data de Nascimento</p>
+                        <input
+                          type="date"
+                          className="w-full px-5 py-3 rounded-2xl bg-white border border-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200"
+                          value={child.birthDate}
+                          onChange={(e) => {
+                            const newDetails = [...childrenDetails];
+                            newDetails[idx] = { ...newDetails[idx], birthDate: e.target.value };
+                            setChildrenDetails(newDetails);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
+                <button
+                  onClick={async () => {
+                    const name = (document.querySelector('#register-name') as HTMLInputElement)?.value;
+                    const email = (document.querySelector('#register-email') as HTMLInputElement)?.value;
+                    const phone = (document.querySelector('#register-phone') as HTMLInputElement)?.value;
+                    const password = (document.querySelector('#register-password') as HTMLInputElement)?.value;
+                    const passwordConfirm = (document.querySelector('#register-password-confirm') as HTMLInputElement)?.value;
+
+                    if (!name || !email || !password || !passwordConfirm) {
+                      setMascotMsg('Preencha os campos obrigatórios!');
+                      return;
+                    }
+
+                    if (password !== passwordConfirm) {
+                      setMascotMsg('As senhas não coincidem!');
+                      return;
+                    }
+
+                    handleRegister({
+                      name,
+                      email,
+                      password,
+                      phone,
+                      numChildren,
+                      childrenDetails
+                    });
+                  }}
+                  disabled={loading}
+                  className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Criando...' : 'Criar Conta ✨'}
+                </button>
               </div>
             )}
           </div>
@@ -2005,10 +2124,82 @@ const App: React.FC = () => {
           </div>
         ))}
       </div>
-      <div className="bg-pink-50/50 p-10 rounded-[56px] border-2 border-dashed border-pink-100 text-center">
+      <div className="bg-pink-50/50 p-10 rounded-[56px] border-2 border-dashed border-pink-100 text-center mb-12">
         <Settings2 size={48} className="mx-auto text-pink-200 mb-4" />
         <h3 className="text-lg font-black text-pink-400 font-luna uppercase italic">Controle de Catálogo Ativado</h3>
         <p className="text-xs font-bold text-pink-300 mt-2 italic">Navegue pelas seções e use os ícones de edição para alterar conteúdos.</p>
+      </div>
+
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-[#6B5A53]">
+            <UsersIcon size={24} />
+            <h3 className="text-xl font-black uppercase italic tracking-tighter">Visão Geral de Clientes ✨</h3>
+          </div>
+          <button onClick={fetchAllUsers} className="p-3 bg-white shadow-sm rounded-full text-[#BBD4E8] hover:text-pink-400 transition-all">
+            <RefreshCw size={20} />
+          </button>
+        </div>
+
+        <div className="bg-white rounded-[48px] shadow-sm border border-gray-50 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50">
+                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
+                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Contato</th>
+                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Esteira</th>
+                  <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {allUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-12 text-center">
+                      <p className="text-xs font-bold text-gray-400 italic">Clique em atualizar para carregar a lista de clientes.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  allUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-400 text-sm font-black uppercase">
+                            {u.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-[#6B5A53]">{u.name}</p>
+                            <p className="text-[10px] text-gray-400 font-bold">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-8">
+                        <p className="text-xs font-bold text-gray-500">{u.phone || 'N/A'}</p>
+                        <p className="text-[10px] text-gray-300 font-bold">{u._count?.children || 0} filhos cadastrados</p>
+                      </td>
+                      <td className="p-8">
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${u.leadType === 'Lead Assinante' ? 'bg-purple-50 text-purple-400' :
+                          u.leadType === 'Lead Cliente' ? 'bg-green-50 text-green-400' :
+                            'bg-blue-50 text-blue-400'
+                          }`}>
+                          <span className="text-[9px] font-black uppercase tracking-widest">{u.leadType || 'Lead Cadastrado'}</span>
+                        </div>
+                      </td>
+                      <td className="p-8">
+                        <button
+                          onClick={() => toggleUserSubscription(u.id, u.is_subscriber)}
+                          className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${u.is_subscriber ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400' : 'bg-purple-400 text-white shadow-lg hover:scale-105'}`}
+                        >
+                          {u.is_subscriber ? 'Remover Clube' : 'Tornar Assinante'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
