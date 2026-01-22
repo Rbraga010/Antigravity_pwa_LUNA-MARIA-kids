@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import RegistrationForm from './components/RegistrationForm';
 import { AdminStatsComponent } from './AdminStats';
+import { FormatTips } from './components/FormatTips';
+import { HelpButton } from './components/HelpButton';
 import { GoogleGenAI } from "@google/genai";
 
 // Swiper Imports
@@ -1283,6 +1285,7 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Image Upload Area */}
                 <div className="space-y-4">
+                  <FormatTips type="product" />
                   <div className="aspect-[4/5] bg-pink-50 rounded-[32px] border-2 border-dashed border-pink-200 flex flex-col items-center justify-center relative group overflow-hidden">
                     {editingProduct.image ? (
                       <>
@@ -1381,6 +1384,7 @@ const App: React.FC = () => {
               <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Banner do Carrossel ✨</h3>
 
               <div className="space-y-6">
+                <FormatTips type="banner" />
                 <div className="aspect-video bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100 flex items-center justify-center relative overflow-hidden">
                   {editingCarouselItem.image_url ? (
                     <img src={editingCarouselItem.image_url} className="w-full h-full object-cover" alt="Preview" />
@@ -1417,6 +1421,7 @@ const App: React.FC = () => {
               <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Material de Conteúdo ✨</h3>
 
               <div className="space-y-6">
+                <FormatTips type={editingMaterial.type === 'VIDEO' ? 'video' : editingMaterial.type === 'PDF' ? 'pdf' : 'image'} />
                 <div className="grid grid-cols-3 gap-3">
                   {['VIDEO', 'PDF', 'IMAGE'].map(type => (
                     <button
@@ -1911,7 +1916,9 @@ const App: React.FC = () => {
   );
 
   const renderAdminDashboard = () => (
-    <div className="pt-24 p-6 lg:p-12 space-y-12 animate-in fade-in duration-500 min-h-screen max-w-[1200px] mx-auto outline-none">
+    <>
+      <HelpButton section="users" />
+      <div className="pt-24 p-6 lg:p-12 space-y-12 animate-in fade-in duration-500 min-h-screen max-w-[1200px] mx-auto outline-none">
       <div className="flex justify-between items-end border-b border-gray-100 pb-8">
         <div className="space-y-2">
           <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Painel da Luna ✨</h2>
@@ -2002,6 +2009,7 @@ const App: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 
   const renderCart = () => (
