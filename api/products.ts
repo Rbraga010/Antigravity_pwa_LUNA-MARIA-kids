@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const products = await prisma.product.findMany({
         orderBy: { display_order: 'asc' }
       });
-      
+
       // Transformar para formato do frontend
       const transformed = products.map(p => ({
         id: p.id,
@@ -31,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         description: p.description,
         displayOrder: p.display_order
       }));
-      
+
       return res.status(200).json(transformed);
     }
 
@@ -52,22 +52,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST - Criar novo produto
     if (req.method === 'POST') {
-      const { name, description, price, oldPrice, image, stock, category, displayOrder } = req.body;
+      const { name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
 
       const product = await prisma.product.create({
         data: {
           name,
           description: description || '',
           price,
-          old_price: oldPrice || null,
-          image_url: image,
+          old_price: old_price || null,
+          image_url,
           stock: stock || 0,
           category,
-          display_order: displayOrder || 0
+          display_order: display_order || 0,
+          sizes: sizes || []
         }
       });
 
-      // Transformar resposta
+      // Transformar para formato do frontend
       const transformed = {
         id: product.id,
         name: product.name,
@@ -76,27 +77,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         image: product.image_url,
         category: product.category,
         description: product.description,
-        displayOrder: product.display_order
+        displayOrder: product.display_order,
+        sizes: product.sizes
       };
 
       return res.status(201).json(transformed);
     }
 
-    // PUT - Atualizar produto
-    if (req.method === 'PUT') {
-      const { id, name, description, price, oldPrice, image, stock, category, displayOrder } = req.body;
+    // PUT ou PATCH - Atualizar produto
+    if (req.method === 'PUT' || req.method === 'PATCH') {
+      const { id, name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
+      const productId = id || req.query.id;
+
+      if (!productId) {
+        return res.status(400).json({ error: 'ID do produto não fornecido' });
+      }
 
       const product = await prisma.product.update({
-        where: { id },
+        where: { id: productId as string },
         data: {
           name,
           description,
           price,
-          old_price: oldPrice || null,
-          image_url: image,
+          old_price: old_price || null,
+          image_url,
           stock,
           category,
-          display_order: displayOrder
+          display_order: display_order,
+          sizes: sizes
         }
       });
 
@@ -109,7 +117,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         image: product.image_url,
         category: product.category,
         description: product.description,
-        displayOrder: product.display_order
+        displayOrder: product.display_order,
+        sizes: product.sizes
       };
 
       return res.status(200).json(transformed);
@@ -130,7 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   } catch (error: any) {
     console.error('Erro na API de produtos:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erro ao processar requisição',
       details: error.message
     });

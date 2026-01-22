@@ -295,7 +295,7 @@ const App: React.FC = () => {
     try {
       setLoading(true);
       const method = productData.id ? 'PATCH' : 'POST';
-      const url = productData.id ? `/api/admin/products/${productData.id}` : '/api/admin/products';
+      const url = '/api/products';
 
       const response = await fetch(url, {
         method,
