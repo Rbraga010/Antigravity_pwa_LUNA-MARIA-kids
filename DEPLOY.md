@@ -65,3 +65,4 @@ Senha: senha123
 
 Email especial que recebe role SUPER_ADMIN automaticamente:
 `Lunamariakids_adm@lmkids.com`
+# Deploy Wed Jan 21 20:57:43 EST 2026
