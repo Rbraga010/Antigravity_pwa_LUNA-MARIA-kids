@@ -1350,6 +1350,11 @@ const App: React.FC = () => {
                     <input id="product-name" type="text" defaultValue={editingProduct.name} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Ex: Vestido Nuvem Mágica" />
                   </div>
 
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Descrição</label>
+                    <textarea id="product-description" defaultValue={editingProduct.description} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[80px]" placeholder="Descrição do produto..."></textarea>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Atual</label>
@@ -1395,13 +1400,13 @@ const App: React.FC = () => {
                   onClick={() => {
                     const formData: any = {
                       name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name || 'Novo Produto',
+                      description: (document.querySelector('#product-description') as HTMLTextAreaElement)?.value || editingProduct.description || 'Produto incrível da Luna Maria Kids',
                       price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
                       old_price: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
                       category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
                       display_order: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
                       stock: parseInt((document.querySelector('#product-stock') as HTMLInputElement)?.value || '10'),
                       image_url: editingProduct.image || 'https://via.placeholder.com/800x1000',
-                      description: editingProduct.description || 'Produto incrível',
                       sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || []
                     };
                     if (editingProduct.id) formData.id = editingProduct.id;
