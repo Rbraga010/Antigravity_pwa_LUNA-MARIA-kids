@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  password_hash       String
+  name                String
+  phone               String?
+  num_children        Int?           @default(0)
+  role                UserRole       @default(USER)
+  is_subscriber       Boolean        @default(false)
+  subscription_since  DateTime?
+  created_at          DateTime       @default(now())
+  children            Child[]
+  subscriptions       Subscription[]
+  orders              Order[]
+  try_on_logs         TryOnLog[]
+  rewards             Reward[]
+
+  @@map("users")
+}
+
+model Child {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  name       String
+  birth_date DateTime
+  gender     String?
+  created_at DateTime @default(now())
+
+  @@map("children")
+}
+
+model Product {
+  id            String     @id @default(uuid())
+  name          String
+  description   String
+  price         Decimal    @db.Decimal(10, 2)
+  old_price     Decimal?   @db.Decimal(10, 2)
+  image_url     String
+  stock         Int
+  category      String
+  display_order Int        @default(0)
+  try_on_logs   TryOnLog[]
+
+  @@map("products")
+}
+
+model CarouselItem {
+  id         String       @id @default(uuid())
+  image_url  String
+  title      String?
+  subtitle   String?
+  type       CarouselType
+  order      Int          @default(0)
+  created_at DateTime     @default(now())
+
+  @@map("carousel_items")
+}
+
+enum CarouselType {
+  TOP
+  FEATURED
+}
+
+model ContentMaterial {
+  id            String       @id @default(uuid())
+  title         String
+  description   String?
+  type          ContentType
+  url           String
+  thumbnail_url String?
+  section       ContentSection
+  order         Int          @default(0)
+  created_at    DateTime     @default(now())
+
+  @@map("content_materials")
+}
+
+enum ContentType {
+  VIDEO
+  PDF
+  IMAGE
+}
+
+enum ContentSection {
+  KIDS
+  FAMILY
+}
+
+model Subscription {
+  id           String             @id @default(uuid())
+  user_id      String
+  user         User               @relation(fields: [user_id], references: [id])
+  plan         SubscriptionPlan
+  status       SubscriptionStatus
+  renewal_date DateTime
+  created_at   DateTime           @default(now())
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionPlan {
+  basico
+  medio
+  avancado
+}
+
+enum SubscriptionStatus {
+  ativa
+  cancelada
+  pendente
+}
+
+model Order {
+  id               String   @id @default(uuid())
+  user_id          String
+  user             User     @relation(fields: [user_id], references: [id])
+  items            Json
+  total_amount     Decimal  @db.Decimal(10, 2)
+  status           String
+  shipping_address Json
+  created_at       DateTime @default(now())
+
+  @@map("orders")
+}
+
+model TryOnLog {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  product_id String
+  product    Product  @relation(fields: [product_id], references: [id])
+  created_at DateTime @default(now())
+  downloaded Boolean  @default(false)
+
+  @@map("try_on_logs")
+}
+
+model Reward {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  type       String   // 'cashback', 'points', 'discount'
+  value      Decimal  @db.Decimal(10, 2)
+  status     String   @default("available") // 'available', 'used', 'expired'
+  expires_at DateTime?
+  created_at DateTime @default(now())
+
+  @@map("rewards")
+}
