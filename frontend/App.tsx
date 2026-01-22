@@ -1375,7 +1375,7 @@ TROCAR LINHAS 1314-1351 POR:
                       category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
                       display_order: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
                       stock: parseInt((document.querySelector('#product-stock') as HTMLInputElement)?.value || '10'),
-                      image_url: editingProduct.image || 'https://via.placeholder.com/800x1000',
+                      image_url: (document.querySelector('#product-image-url') as HTMLInputElement)?.value || editingProduct.image || 'https://via.placeholder.com/800x1000',
                       sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || [],
                       is_featured: (document.querySelector('#product-featured') as HTMLInputElement)?.checked || false
                     };
