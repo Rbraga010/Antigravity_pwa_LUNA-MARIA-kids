@@ -29,7 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         image: p.image_url,
         category: p.category,
         description: p.description,
-        displayOrder: p.display_order
+        displayOrder: p.display_order,
+        sizes: p.sizes || []
       }));
 
       return res.status(200).json(transformed);
@@ -78,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         category: product.category,
         description: product.description,
         displayOrder: product.display_order,
-        sizes: product.sizes
+        sizes: product.sizes || []
       };
 
       return res.status(201).json(transformed);
@@ -118,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         category: product.category,
         description: product.description,
         displayOrder: product.display_order,
-        sizes: product.sizes
+        sizes: product.sizes || []
       };
 
       return res.status(200).json(transformed);
