@@ -1377,9 +1377,15 @@ const App: React.FC = () => {
                     <input id="product-sizes" type="text" defaultValue={editingProduct.sizes?.join(', ')} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="P, M, G" />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Ordem de Exibição (0 = Início)</label>
-                    <input id="product-order" type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Estoque</label>
+                      <input id="product-stock" type="number" defaultValue={editingProduct.stock || 10} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Ordem (0 = Início)</label>
+                      <input id="product-order" type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1388,13 +1394,14 @@ const App: React.FC = () => {
                 <button
                   onClick={() => {
                     const formData: any = {
-                      name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name,
+                      name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name || 'Novo Produto',
                       price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
                       old_price: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
-                      category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category,
+                      category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
                       display_order: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
+                      stock: parseInt((document.querySelector('#product-stock') as HTMLInputElement)?.value || '10'),
                       image_url: editingProduct.image || 'https://via.placeholder.com/800x1000',
-                      description: editingProduct.description || '',
+                      description: editingProduct.description || 'Produto incrível',
                       sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || []
                     };
                     if (editingProduct.id) formData.id = editingProduct.id;
