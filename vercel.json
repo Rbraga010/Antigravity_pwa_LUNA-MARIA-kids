@@ -1,18 +1,5 @@
 {
-    "version": 2,
-    "buildCommand": "npm run build",
-    "installCommand": "npm install && npm install --prefix frontend && npm install --prefix backend && npx prisma generate --schema=backend/prisma/schema.prisma",
-    "framework": "vite",
-    "outputDirectory": "frontend/dist",
-    "rewrites": [
-        {
-            "source": "/api/(.*)",
-            "destination": "/api/index.ts"
-        }
-    ],
-    "env": {
-        "DATABASE_URL": "@database_url",
-        "JWT_SECRET": "@jwt_secret",
-        "GEMINI_API_KEY": "@gemini_api_key"
-    }
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install --prefix frontend && npm install --prefix backend"
 }
