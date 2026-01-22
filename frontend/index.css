@@ -141,6 +141,32 @@
     animation: float 3s ease-in-out infinite;
 }
 
+/* Magic Floating Animations */
+@keyframes magic-float {
+
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    33% {
+        transform: translate(10px, -15px) rotate(5deg);
+    }
+
+    66% {
+        transform: translate(-5px, -10px) rotate(-5deg);
+    }
+}
+
+.animate-magic-float {
+    animation: magic-float 8s ease-in-out infinite;
+}
+
+.animate-magic-float-delayed {
+    animation: magic-float 10s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
 /* Glassmorphism */
 .glass {
     background: rgba(255, 255, 255, 0.7);

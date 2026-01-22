@@ -839,8 +839,17 @@ const App: React.FC = () => {
   };
 
   const TryOnShowcase = () => (
-    <section className="px-6 lg:px-20 py-16 bg-white overflow-hidden">
-      <div className="bg-cream rounded-[64px] p-10 lg:p-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-20 shadow-xl border border-pink-50 relative">
+    <section className="px-6 lg:px-20 py-16 bg-white overflow-hidden relative">
+      {/* Elementos Mágicos de Fundo */}
+      <div className="absolute top-10 left-10 text-pink-200 animate-magic-float opacity-40"><Sparkles size={40} /></div>
+      <div className="absolute top-40 right-20 text-blue-200 animate-magic-float-delayed opacity-30"><Star size={30} /></div>
+      <div className="absolute bottom-20 left-1/4 text-purple-200 animate-magic-float opacity-20"><Sparkles size={24} /></div>
+      <div className="absolute top-1/2 right-1/3 text-pink-100 animate-magic-float-delayed opacity-50"><Star size={20} /></div>
+
+      <div className="bg-cream rounded-[64px] p-10 lg:p-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-20 shadow-xl border border-pink-50 relative overflow-hidden">
+        {/* Magic particles inside the box */}
+        <div className="absolute -top-4 -right-4 text-pink-200/50"><Sparkles size={80} /></div>
+        <div className="absolute -bottom-8 -left-8 text-blue-200/50"><Cloud size={100} /></div>
         <div className="flex-1 space-y-8 relative z-10">
           <div className="space-y-4">
             <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter leading-tight">
@@ -1302,7 +1311,21 @@ const App: React.FC = () => {
                         <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest leading-relaxed">Arraste a PNG mágica aqui ou clique para buscar</p>
                       </div>
                     )}
-                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/png" />
+                    <input
+                      type="file"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      accept="image/png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setEditingProduct({ ...editingProduct, image: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
                   </div>
                   <p className="text-[9px] font-bold text-gray-400 uppercase italic text-center">Formato sugerido: PNG transparente para efeito flutuante.</p>
                 </div>
@@ -1663,7 +1686,7 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="offers"
           title="🌙 Ofertas do Dia"
-          products={getSortedProducts(products)}
+          products={getSortedProducts(products.filter(p => p.oldPrice && p.oldPrice > p.price))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1672,14 +1695,14 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="menina-bebe"
           title="🎀 Menina Bebê"
-          products={getSortedProducts(products)}
+          products={getSortedProducts(products.filter(p => p.category === 'menina-bebe'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="menina-kids"
           title="🎀 Menina Kids"
-          products={getSortedProducts(products)}
+          products={getSortedProducts(products.filter(p => p.category === 'menina-kids'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1688,14 +1711,14 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="menino-bebe"
           title="🚀 Menino Bebê"
-          products={getSortedProducts([...products].reverse())}
+          products={getSortedProducts(products.filter(p => p.category === 'menino-bebe'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="menino-kids"
           title="🚀 Menino Kids"
-          products={getSortedProducts([...products].reverse())}
+          products={getSortedProducts(products.filter(p => p.category === 'menino-kids'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
@@ -1703,14 +1726,14 @@ const App: React.FC = () => {
         <DepartmentCarousel
           id="acessorios"
           title="✨ Acessórios"
-          products={getSortedProducts(products)}
+          products={getSortedProducts(products.filter(p => p.category === 'acessorios'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
         <DepartmentCarousel
           id="complementos"
           title="🎁 Complementos"
-          products={getSortedProducts([...products].reverse())}
+          products={getSortedProducts(products.filter(p => p.category === 'complementos'))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
