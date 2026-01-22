@@ -294,7 +294,7 @@ const App: React.FC = () => {
   const handleSaveProduct = async (productData: Product) => {
     try {
       setLoading(true);
-      const method = productData.id ? 'PATCH' : 'POST';
+      const method = productData.id ? 'PUT' : 'POST';
       const url = '/api/products';
 
       const response = await fetch(url, {
