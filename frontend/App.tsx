@@ -855,53 +855,21 @@ const App: React.FC = () => {
   };
 
   const TryOnShowcase = () => (
-    <section className="px-6 lg:px-20 py-16 bg-white overflow-hidden relative">
-      {/* Elementos Mágicos de Fundo */}
-      <div className="absolute top-10 left-10 text-pink-200 animate-magic-float opacity-40"><Sparkles size={40} /></div>
-      <div className="absolute top-40 right-20 text-blue-200 animate-magic-float-delayed opacity-30"><Star size={30} /></div>
-      <div className="absolute bottom-20 left-1/4 text-purple-200 animate-magic-float opacity-20"><Sparkles size={24} /></div>
-      <div className="absolute top-1/2 right-1/3 text-pink-100 animate-magic-float-delayed opacity-50"><Star size={20} /></div>
-
-      <div className="bg-cream rounded-[64px] p-10 lg:p-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-20 shadow-xl border border-pink-50 relative overflow-hidden">
-        {/* Magic particles inside the box */}
-        <div className="absolute -top-4 -right-4 text-pink-200/50"><Sparkles size={80} /></div>
-        <div className="absolute -bottom-8 -left-8 text-blue-200/50"><Cloud size={100} /></div>
-        <div className="flex-1 space-y-8 relative z-10">
-          <div className="space-y-4">
-            <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter leading-tight">
-              Vista seu filho com magia antes de comprar.
-            </h2>
-            <p className="text-base lg:text-xl font-bold text-gray-500 italic leading-relaxed">
-              Só aqui você escolhe o look, envia uma foto e vê como fica de verdade.
-            </p>
+    <section className="px-6 lg:px-20 py-6 bg-gradient-to-br from-pink-50/30 to-blue-50/30">
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 lg:p-8 flex items-center gap-6 shadow-sm border border-gray-100 hover:shadow-md transition-all">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center text-white shrink-0"><Sparkles size={16} /></div>
+            <h3 className="text-lg font-black text-[#6B5A53] font-luna uppercase italic">Provador Inteligente</h3>
           </div>
-
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pink-400 rounded-full flex items-center justify-center text-white shrink-0"><Sparkles size={20} /></div>
-              <p className="text-sm font-black text-[#6B5A53] uppercase italic">Primeiro provador infantil com IA do Brasil.</p>
-            </div>
-            <p className="text-xs font-bold text-gray-400 italic leading-relaxed pl-13">
-              É simples. É exclusivo. É Luna Maria.
-            </p>
-            <button
-              onClick={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }}
-              className="px-10 py-5 bg-[#6B5A53] text-white rounded-[32px] font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
-            >
-              Escolher Look & Testar Agora ✨
-            </button>
-          </div>
+          <p className="text-xs font-bold text-gray-500 italic">Veja como fica antes de comprar. Exclusivo Luna Maria.</p>
         </div>
-
-        <div className="w-full lg:w-1/3 aspect-[9/16] bg-white rounded-[40px] shadow-2xl border-8 border-gray-100 relative overflow-hidden flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4 text-center p-8 opacity-20">
-            <Smartphone size={64} />
-            <p className="font-black text-xs uppercase tracking-widest">Mockup de Vídeo</p>
-          </div>
-          <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/20 to-transparent flex justify-center">
-            <div className="h-1.5 w-24 bg-white/50 rounded-full"></div>
-          </div>
-        </div>
+        <button
+          onClick={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }}
+          className="px-6 py-3 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+        >
+          Testar Agora ✨
+        </button>
       </div>
     </section>
   );
@@ -1311,43 +1279,27 @@ const App: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Image Upload Area */}
+TROCAR LINHAS 1314-1351 POR:
+
                 <div className="space-y-4">
                   <FormatTips type="product" />
-                  <div className="aspect-[4/5] bg-pink-50 rounded-[32px] border-2 border-dashed border-pink-200 flex flex-col items-center justify-center relative group overflow-hidden">
-                    {editingProduct.image ? (
-                      <>
-                        <img src={editingProduct.image} className="w-full h-full object-cover" alt="Preview" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button className="bg-white text-pink-400 p-4 rounded-full shadow-xl"><RefreshCw size={24} /></button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center p-6 space-y-4">
-                        <div className="p-4 bg-white rounded-2xl text-pink-400 mx-auto w-fit shadow-sm"><Download size={32} /></div>
-                        <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest leading-relaxed">Arraste a imagem aqui ou clique (PNG, JPG, WEBP)</p>
-                      </div>
-                    )}
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">URL da Imagem</label>
                     <input
-                      type="file"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      accept="image/png,image/jpeg,image/jpg,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.size > 2 * 1024 * 1024) {
-                            alert('❌ Imagem muito grande! Máximo 2MB');
-                            return;
-                          }
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setEditingProduct({ ...editingProduct, image: reader.result as string });
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
+                      id="product-image-url"
+                      type="url"
+                      defaultValue={editingProduct.image}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                      placeholder="https://exemplo.com/imagem.png"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200"
                     />
+                    <p className="text-[9px] font-bold text-gray-400 uppercase italic">Cole o link direto da imagem (PNG, JPG, WEBP) | Ideal: 800x1000px</p>
                   </div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase italic text-center">Formatos: PNG, JPG, WEBP | Tamanho máx: 2MB | Ideal: 800x1000px</p>
+                  {editingProduct.image && (
+                    <div className="aspect-[4/5] bg-pink-50 rounded-[32px] border-2 border-pink-100 flex items-center justify-center overflow-hidden">
+                      <img src={editingProduct.image} alt="Preview" className="w-full h-full object-contain p-4" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Form Area */}
@@ -1564,59 +1516,56 @@ const App: React.FC = () => {
   };
 
   const ProductCard = ({ product, onTryOn, ...props }: { product: Product, onTryOn: (p: Product) => void, [key: string]: any }) => (
-    <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col min-w-[240px] max-w-[240px] group transition-all hover:shadow-md">
-      <div className="relative aspect-[4/5] overflow-hidden">
+    <div className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-50 flex flex-col min-w-[240px] max-w-[240px] group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+        {product.is_featured && (
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-wider shadow-lg z-10 flex items-center gap-1">
+            <Star size={10} className="fill-white" /> Oferta
+          </div>
+        )}
         <img
           src={product.image}
           alt={product.name}
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${adjustImageForCategory(product.image, product.category)}`}
+          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${adjustImageForCategory(product.image, product.category)}`}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <button
-          onClick={() => addToCart(product)}
-          className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg text-[#6B5A53] active:scale-95 transition-all"
+          onClick={() => onTryOn(product)}
+          className="absolute top-3 right-3 bg-gradient-to-br from-purple-400 to-pink-400 text-white p-2.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95"
         >
-          <Plus size={20} />
+          <CameraIcon size={16} />
         </button>
       </div>
-      <div className="p-4 space-y-2">
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map(s => <StarIcon key={s} size={10} className="fill-yellow-400 text-yellow-400" />)}
-          <span className="text-[9px] text-gray-400 font-bold ml-1">(4.9)</span>
+      <div className="p-5 space-y-3">
+        <div className="space-y-1">
+          <h3 className="text-sm font-black text-[#6B5A53] uppercase tracking-tight line-clamp-1">{product.name}</h3>
+          {product.description && (
+            <p className="text-[10px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{product.description}</p>
+          )}
         </div>
-        <h3 className="text-xs font-black text-[#6B5A53] uppercase tracking-tighter line-clamp-1">{product.name}</h3>
-        {product.description && (
-          <p className="text-[9px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{product.description}</p>
-        )}
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
-            {product.oldPrice && (
-              <p className="text-[10px] text-gray-400 line-through font-bold">R$ {product.oldPrice.toFixed(2)}</p>
-            )}
-          </div>
-          <p className="text-[9px] font-bold text-gray-400 uppercase italic">Ou 3x de R$ {(product.price / 3).toFixed(2)}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-xl font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
+          {product.oldPrice && (
+            <p className="text-xs text-gray-400 line-through font-bold">R$ {product.oldPrice.toFixed(2)}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map(s => <StarIcon key={s} size={12} className="fill-yellow-400 text-yellow-400" />)}
+          <span className="text-[10px] text-gray-500 font-bold ml-1">(4.9)</span>
         </div>
         {product.sizes && product.sizes.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-1">
+          <div className="flex flex-wrap gap-1.5">
             {product.sizes.map(s => (
-              <span key={s} className="px-2 py-0.5 bg-gray-50 text-[8px] font-black text-gray-400 rounded-md border border-gray-100 uppercase">{s}</span>
+              <span key={s} className="px-2.5 py-1 bg-gradient-to-br from-gray-50 to-gray-100 text-[9px] font-black text-gray-600 rounded-lg border border-gray-200 uppercase">{s}</span>
             ))}
           </div>
         )}
-        <div className="pt-2 flex flex-col gap-2">
-          <button
-            onClick={() => onTryOn(product)}
-            className="w-full py-2.5 bg-purple-50 text-purple-400 rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 border border-purple-100"
-          >
-            <CameraIcon size={12} /> Provar agora mesmo
-          </button>
-          <button
-            onClick={() => addToCart(product)}
-            className="w-full py-2.5 bg-[#6B5A53] text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm active:scale-95"
-          >
-            Comprar
-          </button>
-        </div>
+        <button
+          onClick={() => addToCart(product)}
+          className="w-full py-3 bg-gradient-to-r from-[#6B5A53] to-[#5A4A43] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-md hover:shadow-lg active:scale-95 transition-all"
+        >
+          Adicionar ao Carrinho
+        </button>
       </div>
     </div>
   );
@@ -1744,8 +1693,8 @@ const App: React.FC = () => {
 
         <DepartmentCarousel
           id="offers"
-          title="🌙 Ofertas do Dia"
-          products={getSortedProducts(products.filter(p => p.oldPrice && p.oldPrice > p.price))}
+          title="⭐ Ofertas do Dia"
+          products={getSortedProducts(products.filter(p => p.is_featured))}
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
