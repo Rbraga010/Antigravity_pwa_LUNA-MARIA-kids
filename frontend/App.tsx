@@ -282,8 +282,8 @@ const App: React.FC = () => {
   const handleSaveProduct = async (productData: Product) => {
     try {
       setLoading(true);
-      const method = productData.id ? 'PATCH' : 'POST';
-      const url = productData.id ? `/api/admin/products/${productData.id}` : '/api/admin/products';
+      const method = productData.id ? 'PUT' : 'POST';
+      const url = '/api/products';
 
       const response = await fetch(url, {
         method,
@@ -319,9 +319,10 @@ const App: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await fetch('/api/products', {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id: productId })
       });
 
       if (response.ok) {
@@ -341,8 +342,8 @@ const App: React.FC = () => {
   const handleSaveCarousel = async (carouselData: CarouselItem) => {
     try {
       setLoading(true);
-      const method = carouselData.id ? 'PATCH' : 'POST';
-      const url = carouselData.id ? `/api/admin/carousels/${carouselData.id}` : '/api/admin/carousels';
+      const method = carouselData.id ? 'PUT' : 'POST';
+      const url = '/api/carousels';
 
       const response = await fetch(url, {
         method,
@@ -390,9 +391,10 @@ const App: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/carousels/${carouselId}`, {
+      const response = await fetch('/api/carousels', {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id: carouselId })
       });
 
       if (response.ok) {
@@ -416,8 +418,8 @@ const App: React.FC = () => {
   const handleSaveMaterial = async (materialData: ContentMaterial) => {
     try {
       setLoading(true);
-      const method = materialData.id ? 'PATCH' : 'POST';
-      const url = materialData.id ? `/api/admin/content/${materialData.id}` : '/api/admin/content';
+      const method = materialData.id ? 'PUT' : 'POST';
+      const url = '/api/materials';
 
       const response = await fetch(url, {
         method,
@@ -465,9 +467,10 @@ const App: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/content/${materialId}`, {
+      const response = await fetch('/api/materials', {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id: materialId })
       });
 
       if (response.ok) {
