@@ -19,6 +19,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const carousels = await prisma.carouselItem.findMany({
         orderBy: { order: 'asc' }
       });
+      
+      // Já retorna no formato correto (image_url, não precisa transformar)
       return res.status(200).json(carousels);
     }
 

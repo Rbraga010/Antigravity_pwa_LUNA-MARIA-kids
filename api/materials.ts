@@ -19,6 +19,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const materials = await prisma.contentMaterial.findMany({
         orderBy: { order: 'asc' }
       });
+      
+      // Já retorna no formato correto (thumbnail_url, url, etc)
       return res.status(200).json(materials);
     }
 
