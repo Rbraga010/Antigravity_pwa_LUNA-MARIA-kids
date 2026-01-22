@@ -44,10 +44,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       data: {
         name,
         email,
-        password: hashedPassword,
+        password_hash: hashedPassword,
         phone: phone || null,
         num_children: numChildren || 0,
-        children_details: childrenDetails || [],
         role: email === 'Lunamariakids_adm@lmkids.com' ? 'SUPER_ADMIN' : 'USER'
       }
     });
@@ -60,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // Retornar usuário sem senha
-    const { password: _, ...userWithoutPassword } = user;
+    const { password_hash: _, ...userWithoutPassword } = user;
 
     return res.status(201).json({
       user: userWithoutPassword,
