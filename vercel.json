@@ -1,5 +1,10 @@
 {
-  "buildCommand": "cd frontend && npm install && npx prisma generate && npm run build",
+  "buildCommand": "cd frontend && npm install && npx prisma generate --schema=../prisma/schema.prisma && npm run build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install --prefix frontend"
+  "installCommand": "npm install && npm install --prefix frontend",
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }
