@@ -1347,16 +1347,16 @@ const App: React.FC = () => {
               <div className="pt-6 flex gap-4">
                 <button
                   onClick={() => {
-                    const formData = {
-                      id: editingProduct.id,
+                    const formData: any = {
                       name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name,
                       price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
                       oldPrice: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
                       category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category,
                       displayOrder: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
-                      image: editingProduct.image,
-                      description: editingProduct.description
+                      image: editingProduct.image || 'https://via.placeholder.com/800x1000',
+                      description: editingProduct.description || ''
                     };
+                    if (editingProduct.id) formData.id = editingProduct.id;
                     handleSaveProduct(formData);
                   }}
                   disabled={loading}
@@ -1409,7 +1409,23 @@ const App: React.FC = () => {
                   </select>
                 </div>
 
-                <button className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl">Publicar Banner ✨</button>
+                <button 
+                  onClick={() => {
+                    const formData: any = {
+                      image_url: editingCarouselItem.image_url || 'https://via.placeholder.com/1920x640',
+                      title: (document.querySelector('input[placeholder="Título do Banner"]') as HTMLInputElement)?.value || null,
+                      subtitle: (document.querySelector('input[placeholder="Subtítulo/Texto de Apoio"]') as HTMLInputElement)?.value || null,
+                      type: (document.querySelector('select') as HTMLSelectElement)?.value || 'TOP',
+                      order: 0
+                    };
+                    if (editingCarouselItem.id) formData.id = editingCarouselItem.id;
+                    handleSaveCarousel(formData);
+                  }}
+                  disabled={loading}
+                  className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Publicar Banner ✨'}
+                </button>
               </div>
             </div>
           </div>
@@ -1449,7 +1465,25 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <button className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl">Salvar Material ✨</button>
+                <button 
+                  onClick={() => {
+                    const formData: any = {
+                      title: (document.querySelector('input[placeholder="Título do Material"]') as HTMLInputElement)?.value || '',
+                      description: (document.querySelector('textarea[placeholder="Breve descrição mágica..."]') as HTMLTextAreaElement)?.value || '',
+                      type: editingMaterial.type || 'VIDEO',
+                      url: (document.querySelector('input[placeholder*="URL"]') as HTMLInputElement)?.value || '',
+                      thumbnail_url: editingMaterial.thumbnail_url || null,
+                      section: (document.querySelectorAll('select')[1] as HTMLSelectElement)?.value || 'KIDS',
+                      order: 0
+                    };
+                    if (editingMaterial.id) formData.id = editingMaterial.id;
+                    handleSaveMaterial(formData);
+                  }}
+                  disabled={loading}
+                  className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Salvar Material ✨'}
+                </button>
               </div>
             </div>
           </div>
