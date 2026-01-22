@@ -1328,7 +1328,7 @@ const App: React.FC = () => {
                       type="file"
                       className="absolute inset-0 opacity-0 cursor-pointer"
                       accept="image/png,image/jpeg,image/jpg,image/webp"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           // Validar tamanho (máx 2MB)
@@ -1336,9 +1336,31 @@ const App: React.FC = () => {
                             alert('❌ Imagem muito grande! Máximo 2MB');
                             return;
                           }
+                          
+                          setLoading(true);
                           const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setEditingProduct({ ...editingProduct, image: reader.result as string });
+                          reader.onloadend = async () => {
+                            try {
+                              // Upload para servidor
+                              const response = await fetch('/api/upload-image', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ image: reader.result })
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                setEditingProduct({ ...editingProduct, image: data.url });
+                                setMascotMsg('✅ Imagem carregada com sucesso!');
+                              } else {
+                                throw new Error('Falha no upload');
+                              }
+                            } catch (error) {
+                              setMascotMsg('❌ Erro ao fazer upload da imagem');
+                              setEditingProduct({ ...editingProduct, image: reader.result as string });
+                            } finally {
+                              setLoading(false);
+                            }
                           };
                           reader.readAsDataURL(file);
                         }
@@ -1374,16 +1396,16 @@ const App: React.FC = () => {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Categoria</label>
                      <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
-                      <option value="MENINA_BEBE">Menina Bebê (0-2 anos)</option>
-                      <option value="MENINA_KIDS">Menina Kids (3-8 anos)</option>
-                      <option value="MENINA_TEEN">Menina Teen (9-14 anos)</option>
-                      <option value="MENINO_BEBE">Menino Bebê (0-2 anos)</option>
-                      <option value="MENINO_KIDS">Menino Kids (3-8 anos)</option>
-                      <option value="MENINO_TEEN">Menino Teen (9-14 anos)</option>
-                      <option value="UNISSEX">Unissex</option>
-                      <option value="ACESSORIOS">Acessórios</option>
-                      <option value="CALCADOS">Calçados</option>
-                      <option value="CONJUNTOS">Conjuntos</option>
+                      <option value="menina-bebe">Menina Bebê (0-2 anos)</option>
+                      <option value="menina-kids">Menina Kids (3-8 anos)</option>
+                      <option value="menina-teen">Menina Teen (9-14 anos)</option>
+                      <option value="menino-bebe">Menino Bebê (0-2 anos)</option>
+                      <option value="menino-kids">Menino Kids (3-8 anos)</option>
+                      <option value="menino-teen">Menino Teen (9-14 anos)</option>
+                      <option value="unissex">Unissex</option>
+                      <option value="acessorios">Acessórios</option>
+                      <option value="calcados">Calçados</option>
+                      <option value="conjuntos">Conjuntos</option>
                     </select>
                   </div>
 
@@ -1402,6 +1424,11 @@ const App: React.FC = () => {
                       <input id="product-order" type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-3 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
+                    <input id="product-featured" type="checkbox" defaultChecked={editingProduct.is_featured || false} className="w-5 h-5 text-yellow-500 rounded focus:ring-2 focus:ring-yellow-300" />
+                    <label htmlFor="product-featured" className="text-[11px] font-black text-yellow-700 uppercase tracking-wide">⭐ Destacar como Oferta do Dia</label>
+                  </div>
                 </div>
               </div>
 
@@ -1410,14 +1437,15 @@ const App: React.FC = () => {
                   onClick={() => {
                     const formData: any = {
                       name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name || 'Novo Produto',
-                      description: (document.querySelector('#product-description') as HTMLTextAreaElement)?.value || editingProduct.description || 'Produto incrível da Luna Maria Kids',
+                      description: (document.querySelector('#product-description') as HTMLTextAreaElement)?.value || editingProduct.description || '',
                       price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
                       old_price: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
                       category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
                       display_order: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
                       stock: parseInt((document.querySelector('#product-stock') as HTMLInputElement)?.value || '10'),
                       image_url: editingProduct.image || 'https://via.placeholder.com/800x1000',
-                      sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || []
+                      sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || [],
+                      is_featured: (document.querySelector('#product-featured') as HTMLInputElement)?.checked || false
                     };
                     if (editingProduct.id) formData.id = editingProduct.id;
                     handleSaveProduct(formData);

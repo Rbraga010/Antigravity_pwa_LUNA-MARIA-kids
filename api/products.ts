@@ -53,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST - Criar novo produto
     if (req.method === 'POST') {
-      const { name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
+      const { name, description, price, old_price, image_url, stock, category, display_order, sizes, is_featured } = req.body;
 
       const product = await prisma.product.create({
         data: {
@@ -65,7 +65,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           stock: stock || 0,
           category,
           display_order: display_order || 0,
-          sizes: sizes || []
+          sizes: sizes || [],
+          is_featured: is_featured || false
         }
       });
 
@@ -87,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PUT ou PATCH - Atualizar produto
     if (req.method === 'PUT' || req.method === 'PATCH') {
-      const { id, name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
+      const { id, name, description, price, old_price, image_url, stock, category, display_order, sizes, is_featured } = req.body;
       const productId = id || req.query.id;
 
       if (!productId) {
@@ -104,6 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (category !== undefined) updateData.category = category;
       if (display_order !== undefined) updateData.display_order = display_order;
       if (sizes !== undefined) updateData.sizes = sizes;
+      if (is_featured !== undefined) updateData.is_featured = is_featured;
 
       const product = await prisma.product.update({
         where: { id: productId as string },
