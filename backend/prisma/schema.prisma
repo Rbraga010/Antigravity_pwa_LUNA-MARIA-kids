@@ -52,9 +52,11 @@ model Product {
   price         Decimal    @db.Decimal(10, 2)
   old_price     Decimal?   @db.Decimal(10, 2)
   image_url     String
-  stock         Int
+  stock         Int?       @default(0)
   category      String
+  sizes         String[]   @default([])
   display_order Int        @default(0)
+  is_featured   Boolean    @default(false)
   try_on_logs   TryOnLog[]
 
   @@map("products")

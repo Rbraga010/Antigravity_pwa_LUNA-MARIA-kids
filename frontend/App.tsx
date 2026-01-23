@@ -30,6 +30,7 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || "dummy-key"
 
 const LOGO_URL = "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696ed4b28ec5c998d1d2d5e6.png";
 const CLUB_URL = "https://publicado-p-gina-clubeda-luna.vercel.app/";
+const DEFAULT_IMAGE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-weight="bold" fill="#999">Sem imagem</text></svg>')}`;
 
 const CLUB_IMAGES = {
   hero: "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696e6294c7f17f241fc1763c.png",
@@ -136,8 +137,7 @@ const App: React.FC = () => {
           const productsData = await productsRes.json();
           setProducts(productsData.map(mapBackendProductToFrontend));
         } else {
-          // Fallback to INITIAL_PRODUCTS if API fails
-          setProducts(INITIAL_PRODUCTS);
+          setProducts([]);
         }
 
         // Load carousels and content (try to load, fallback to empty if not available)
@@ -172,8 +172,7 @@ const App: React.FC = () => {
         }
       } catch (error) {
         console.error('Failed to load data:', error);
-        // Fallback to hardcoded products
-        setProducts(INITIAL_PRODUCTS);
+        setProducts([]);
       }
     };
 
@@ -691,7 +690,7 @@ const App: React.FC = () => {
           {bannersToDisplay.map((b) => (
             <SwiperSlide key={b.id}>
               <div className="relative w-full h-full group">
-                <img src={b.image_url} alt={b.title || 'Banner'} className="w-full h-full object-cover" />
+                <img src={b.image_url || DEFAULT_IMAGE} alt={b.title || 'Banner'} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/10"></div>
                 {isAdminEditing && (
                   <button
@@ -926,7 +925,12 @@ const App: React.FC = () => {
         }}
         className="product-carousel !overflow-visible"
       >
-        {products.map(p => (
+        {products.length === 0 ? (
+          <div className="py-12 text-center bg-gray-50/50 rounded-[40px] border-2 border-dashed border-gray-100 mx-auto w-full max-w-lg">
+            <ShoppingBag size={32} className="mx-auto text-gray-200 mb-4" />
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest italic">Nenhum produto disponível nesta categoria</p>
+          </div>
+        ) : products.map(p => (
           <SwiperSlide key={p.id}>
             <div className="relative group">
               <ProductCard
@@ -983,7 +987,7 @@ const App: React.FC = () => {
         ) : items.map(item => (
           <SwiperSlide key={item.id}>
             <div className="relative group aspect-video rounded-3xl overflow-hidden shadow-xl bg-gray-100">
-              <img src={item.thumbnail_url || 'https://images.unsplash.com/photo-1454165833767-027eeea160a7?w=400'} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <img src={item.thumbnail_url || DEFAULT_IMAGE} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
               <div className="absolute inset-0 p-4 flex flex-col justify-end">
                 <p className="text-[9px] font-black text-pink-400 uppercase tracking-widest mb-1">{item.type}</p>
@@ -1224,7 +1228,7 @@ const App: React.FC = () => {
 
                       try {
                         setLoading(true);
-                        const response = await fetch('/api/login', {
+                        const response = await fetch('/api/auth/login', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email, password })
@@ -1526,9 +1530,9 @@ const App: React.FC = () => {
           </div>
         )}
         <img
-          src={product.image}
+          src={product.image || DEFAULT_IMAGE}
           alt={product.name}
-          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${adjustImageForCategory(product.image, product.category)}`}
+          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${adjustImageForCategory(product.image || DEFAULT_IMAGE, product.category)}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <button
@@ -2123,7 +2127,7 @@ const App: React.FC = () => {
         <div className="space-y-4">
           {cart.map((item) => (
             <div key={item.id} className="bg-white p-5 rounded-[40px] shadow-sm border border-gray-100 flex gap-5 items-center">
-              <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-[32px] shadow-sm" />
+              <img src={item.image || DEFAULT_IMAGE} alt={item.name} className="w-24 h-24 object-cover rounded-[32px] shadow-sm" />
               <div className="flex-1">
                 <h3 className="font-black text-[#6B5A53] text-sm font-luna uppercase italic truncate">{item.name}</h3>
                 <p className="text-xs font-black text-[#BBD4E8] mt-1">R$ {item.price.toFixed(2)}</p>
