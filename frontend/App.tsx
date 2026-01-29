@@ -26,7 +26,18 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
+// Premium Modular Components
+import { HeroSection } from './components/HeroSection';
+import { PremiumProductCard } from './components/PremiumProductCard';
+import { TryOnGuide } from './components/TryOnGuide';
+import { UGCGallery } from './components/UGCGallery';
+import { AutoCarousel } from './components/AutoCarousel';
+import { DifferentialsSection } from './components/DifferentialsSection';
+import { AdminModals } from './components/AdminModals';
+import { motion, AnimatePresence } from 'framer-motion';
+
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || "dummy-key" });
+
 
 const LOGO_URL = "https://storage.googleapis.com/msgsndr/mUZEjZcfs8vJQPN3EnCF/media/696ed4b28ec5c998d1d2d5e6.png";
 const CLUB_URL = "https://publicado-p-gina-clubeda-luna.vercel.app/";
@@ -662,51 +673,6 @@ const App: React.FC = () => {
     );
   };
 
-  const AutoCarousel = () => {
-    const bannersToDisplay = topCarousel.length > 0 ? topCarousel : [
-      { id: '1', image_url: '/banner_magic.png', title: 'Mundo Mágico', subtitle: 'Roupas que encantam.', type: 'TOP' as const, order: 0 },
-      { id: '2', image_url: '/banner_club.png', title: 'Clube Luna', subtitle: 'Momentos únicos.', type: 'TOP' as const, order: 1 },
-      { id: '3', image_url: '/banner_offers.png', title: 'Lua de Ofertas', subtitle: 'Descontos especiais.', type: 'TOP' as const, order: 2 }
-    ];
-
-    return (
-      <section className="relative w-full aspect-[21/9] lg:aspect-[3/1] overflow-hidden">
-        {isAdminEditing && (
-          <button
-            onClick={() => setEditingCarouselItem({ id: '', image_url: '', type: 'TOP', order: topCarousel.length } as CarouselItem)}
-            className="absolute top-4 right-4 z-50 bg-pink-400 text-white p-4 rounded-full shadow-xl hover:scale-110 active:scale-90 transition-all"
-          >
-            <Plus size={20} />
-          </button>
-        )}
-        <Swiper
-          modules={[Autoplay, Pagination, SwiperNavigation]}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          pagination={{ clickable: true }}
-          navigation={true}
-          loop={bannersToDisplay.length > 1}
-          className="w-full h-full"
-        >
-          {bannersToDisplay.map((b) => (
-            <SwiperSlide key={b.id}>
-              <div className="relative w-full h-full group">
-                <img src={b.image_url || DEFAULT_IMAGE} alt={b.title || 'Banner'} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/10"></div>
-                {isAdminEditing && (
-                  <button
-                    onClick={() => setEditingCarouselItem(b)}
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-white/90 backdrop-blur-sm text-pink-400 p-6 rounded-full shadow-2xl transition-opacity"
-                  >
-                    <Edit3 size={24} />
-                  </button>
-                )}
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </section>
-    );
-  };
 
   const TickerBar = () => {
     const items = [
@@ -737,70 +703,6 @@ const App: React.FC = () => {
     );
   };
 
-  const DifferentialsSection = () => (
-    <section className="px-6 lg:px-20 py-24 space-y-16 bg-white">
-      <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <h2 className="text-3xl lg:text-5xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter italic leading-tight">Nossos Diferenciais</h2>
-        <div className="h-1.5 w-24 bg-[#F5D8E8] mx-auto rounded-full"></div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-        {[
-          {
-            icon: Sparkles,
-            t: 'LOJA MÁGICA',
-            sub: 'A única loja onde seu filho prova o amor antes de vestir.',
-            d: 'Primeiro e-commerce infantil do Brasil com provador virtual. Vista seu filho com magia antes da entrega.',
-            color: 'bg-blue-400',
-            section: AppSection.SHOP
-          },
-          {
-            icon: Gamepad2,
-            t: 'ESPAÇO KIDS',
-            sub: 'Diversão que educa. IA que entende a infância.',
-            d: 'Jogos criativos, desafios e desenhos com IA — sem tela vazia, sem culpa.',
-            color: 'bg-pink-400',
-            section: AppSection.KIDS
-          },
-          {
-            icon: UsersIcon,
-            t: 'ESPAÇO FAMÍLIA',
-            sub: 'Onde vínculos se fortalecem sem esforço.',
-            d: 'Atividades e rituais pra criar famílias inabaláveis. A Luna te ajuda a ser presente, mesmo na correria.',
-            color: 'bg-orange-400',
-            section: AppSection.FAMILY_MOMENT
-          },
-          {
-            icon: Moon,
-            t: 'CLUBE DA LUNA',
-            sub: 'Não é só uma caixa. É o momento que seu filho vai lembrar pra sempre.',
-            d: 'Assinatura mensal com roupas, mimos e conexão. Todo mês, um ritual de afeto em família.',
-            color: 'bg-purple-400',
-            onClick: () => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }
-          }
-        ].map((diff, i) => (
-          <div
-            key={i}
-            onClick={() => diff.onClick ? diff.onClick() : (diff.section && navigateTo(diff.section))}
-            className="group cursor-pointer space-y-6"
-          >
-            <div className={`${diff.color} aspect-[4/3] rounded-[48px] shadow-xl flex items-center justify-center text-white transition-all group-hover:scale-[1.02] group-hover:shadow-2xl overflow-hidden relative`}>
-              <diff.icon size={64} className="relative z-10 opacity-90" />
-              <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </div>
-            <div className="space-y-3 px-2">
-              <h3 className="text-xl font-black text-[#6B5A53] font-luna uppercase tracking-tight italic flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#BBD4E8]"></span>
-                {diff.t}
-              </h3>
-              <p className="text-sm font-black text-[#6B5A53] leading-snug italic">{diff.sub}</p>
-              <p className="text-xs font-bold text-gray-400 leading-relaxed italic">{diff.d}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
 
   const handleRegister = async (registrationData: any) => {
     try {
@@ -836,24 +738,14 @@ const App: React.FC = () => {
     }
   };
 
-  const HomeHero = () => {
-    return (
-      <section className="px-6 lg:px-20 py-12 lg:py-24 bg-cream flex flex-col lg:flex-row gap-12 lg:gap-20 items-center overflow-hidden">
-        <div className="flex-1 space-y-8">
-          <h1 className="text-3xl lg:text-6xl font-black uppercase leading-tight italic tracking-tighter animated-gradient-text font-luna">
-            Bem-vindo ao único lugar onde seu filho é o protagonista de um mundo encantado — todo mês.
-          </h1>
-          <p className="text-base lg:text-xl font-bold text-gray-500 italic max-w-xl leading-relaxed">
-            Aqui, cada entrega não traz só produtos. Traz o tipo de lembrança que você vai ver nas fotos do futuro.
-          </p>
-        </div>
+  const HomeHero = () => (
+    <HeroSection
+      onNavigate={navigateTo}
+      onRegister={handleRegister}
+      loading={loading}
+    />
+  );
 
-        <div className="w-full lg:max-w-md relative z-10">
-          <RegistrationForm onSubmit={handleRegister} loading={loading} />
-        </div>
-      </section>
-    );
-  };
 
   const TryOnShowcase = () => (
     <section className="px-6 lg:px-20 py-6 bg-gradient-to-br from-pink-50/30 to-blue-50/30">
@@ -932,15 +824,17 @@ const App: React.FC = () => {
           </div>
         ) : products.map(p => (
           <SwiperSlide key={p.id}>
-            <div className="relative group">
-              <ProductCard
+            <div className="relative group p-2">
+              <PremiumProductCard
                 product={p}
                 onTryOn={(selected) => { setSelectedProduct(selected); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }}
+                onAddToCart={addToCart}
+                adjustImageForCategory={adjustImageForCategory}
               />
               {isAdmin && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onEdit?.(p); }}
-                  className="absolute top-4 right-4 z-40 p-3 bg-pink-400 text-white rounded-full shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white"
+                  className="absolute top-6 right-6 z-40 p-3 bg-pink-400 text-white rounded-full shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white"
                 >
                   <Edit3 size={16} />
                 </button>
@@ -1267,347 +1161,6 @@ const App: React.FC = () => {
     </div>
   );
 
-  const AdminModals = () => {
-    if (!isAdminEditing) return null;
-
-    return (
-      <>
-        {/* Product Modal */}
-        {editingProduct && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative scrollbar-hide">
-              <button onClick={() => setEditingProduct(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
-
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Edição Mágica de Produto ✨</h3>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest italic">Ajuste os detalhes deste tesouro da Luna Maria.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Image Upload Area */}
-                TROCAR LINHAS 1314-1351 POR:
-
-                <div className="space-y-4">
-                  <FormatTips type="product" />
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">URL da Imagem</label>
-                    <input
-                      id="product-image-url"
-                      type="url"
-                      defaultValue={editingProduct.image}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                      placeholder="https://exemplo.com/imagem.png"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200"
-                    />
-                    <p className="text-[9px] font-bold text-gray-400 uppercase italic">Cole o link direto da imagem (PNG, JPG, WEBP) | Ideal: 800x1000px</p>
-                  </div>
-                  {editingProduct.image && (
-                    <div className="aspect-[4/5] bg-pink-50 rounded-[32px] border-2 border-pink-100 flex items-center justify-center overflow-hidden">
-                      <img src={editingProduct.image} alt="Preview" className="w-full h-full object-contain p-4" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Form Area */}
-                <div className="space-y-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Nome do Produto</label>
-                    <input id="product-name" type="text" defaultValue={editingProduct.name} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="Ex: Vestido Nuvem Mágica" />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Descrição</label>
-                    <textarea id="product-description" defaultValue={editingProduct.description} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[80px]" placeholder="Descrição do produto..."></textarea>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Atual</label>
-                      <input id="product-price" type="number" defaultValue={editingProduct.price} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="129.90" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Preço Antigo (Promo)</label>
-                      <input id="product-old-price" type="number" defaultValue={editingProduct.oldPrice} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="189.90" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Categoria</label>
-                    <select id="product-category" defaultValue={editingProduct.category} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
-                      <option value="menina-bebe">Menina Bebê (0-2 anos)</option>
-                      <option value="menina-kids">Menina Kids (3-8 anos)</option>
-                      <option value="menina-teen">Menina Teen (9-14 anos)</option>
-                      <option value="menino-bebe">Menino Bebê (0-2 anos)</option>
-                      <option value="menino-kids">Menino Kids (3-8 anos)</option>
-                      <option value="menino-teen">Menino Teen (9-14 anos)</option>
-                      <option value="unissex">Unissex</option>
-                      <option value="acessorios">Acessórios</option>
-                      <option value="calcados">Calçados</option>
-                      <option value="conjuntos">Conjuntos</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Tamanhos (letras e/ou números)</label>
-                    <input id="product-sizes" type="text" defaultValue={editingProduct.sizes?.join(', ')} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="P, M, G, 2, 4, 6, 8" />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Estoque</label>
-                      <input id="product-stock" type="number" defaultValue={editingProduct.stock || 10} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" placeholder="10" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-[#6B5A53] uppercase tracking-widest pl-1">Ordem (0 = Início)</label>
-                      <input id="product-order" type="number" defaultValue={editingProduct.displayOrder || 0} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-200" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
-                    <input id="product-featured" type="checkbox" defaultChecked={editingProduct.is_featured || false} className="w-5 h-5 text-yellow-500 rounded focus:ring-2 focus:ring-yellow-300" />
-                    <label htmlFor="product-featured" className="text-[11px] font-black text-yellow-700 uppercase tracking-wide">⭐ Destacar como Oferta do Dia</label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6 flex gap-4">
-                <button
-                  onClick={() => {
-                    const formData: any = {
-                      name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name || 'Novo Produto',
-                      description: (document.querySelector('#product-description') as HTMLTextAreaElement)?.value || editingProduct.description || '',
-                      price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
-                      old_price: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
-                      category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
-                      display_order: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
-                      stock: parseInt((document.querySelector('#product-stock') as HTMLInputElement)?.value || '10'),
-                      image_url: (document.querySelector('#product-image-url') as HTMLInputElement)?.value || editingProduct.image || 'https://via.placeholder.com/800x1000',
-                      sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || [],
-                      is_featured: (document.querySelector('#product-featured') as HTMLInputElement)?.checked || false
-                    };
-                    if (editingProduct.id) formData.id = editingProduct.id;
-                    handleSaveProduct(formData);
-                  }}
-                  disabled={loading}
-                  className="flex-1 bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Salvando...' : 'Salvar Alterações ✨'}
-                </button>
-                {editingProduct.id && (
-                  <button
-                    onClick={() => handleDeleteProduct(editingProduct.id)}
-                    disabled={loading}
-                    className="px-8 bg-red-50 text-red-400 rounded-[28px] font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-colors disabled:opacity-50"
-                  >
-                    Excluir
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Carousel Modal (Shared Logic for Top and Featured) */}
-        {editingCarouselItem && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative">
-              <button onClick={() => setEditingCarouselItem(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
-
-              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Banner do Carrossel ✨</h3>
-
-              <div className="space-y-6">
-                <FormatTips type="banner" />
-                <div className="aspect-video bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100 flex items-center justify-center relative overflow-hidden">
-                  {editingCarouselItem.image_url ? (
-                    <img src={editingCarouselItem.image_url} className="w-full h-full object-cover" alt="Preview" />
-                  ) : (
-                    <div className="text-center p-6 text-gray-300">
-                      <Download size={32} className="mx-auto mb-2" />
-                      <p className="text-[9px] font-black uppercase tracking-widest">Clique para subir o Banner</p>
-                    </div>
-                  )}
-                  <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
-                </div>
-
-                <div className="space-y-4">
-                  <input type="text" defaultValue={editingCarouselItem.title || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="Título do Banner" />
-                  <input type="text" defaultValue={editingCarouselItem.subtitle || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="Subtítulo/Texto de Apoio" />
-                  <select defaultValue={editingCarouselItem.type} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none">
-                    <option value="TOP">Topo (Cabeçalho)</option>
-                    <option value="FEATURED">Destaque (Meio da Página)</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={() => {
-                    const formData: any = {
-                      image_url: editingCarouselItem.image_url || 'https://via.placeholder.com/1920x640',
-                      title: (document.querySelector('input[placeholder="Título do Banner"]') as HTMLInputElement)?.value || null,
-                      subtitle: (document.querySelector('input[placeholder="Subtítulo/Texto de Apoio"]') as HTMLInputElement)?.value || null,
-                      type: (document.querySelector('select') as HTMLSelectElement)?.value || 'TOP',
-                      order: 0
-                    };
-                    if (editingCarouselItem.id) formData.id = editingCarouselItem.id;
-                    handleSaveCarousel(formData);
-                  }}
-                  disabled={loading}
-                  className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Salvando...' : 'Publicar Banner ✨'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content Material Modal (Video, PDF, Image) */}
-        {editingMaterial && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative">
-              <button onClick={() => setEditingMaterial(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
-
-              <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Material de Conteúdo ✨</h3>
-
-              <div className="space-y-6">
-                <FormatTips type={editingMaterial.type === 'VIDEO' ? 'video' : editingMaterial.type === 'PDF' ? 'pdf' : 'image'} />
-                <div className="grid grid-cols-3 gap-3">
-                  {['VIDEO', 'PDF', 'IMAGE'].map(type => (
-                    <button
-                      key={type}
-                      className={`py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest border-2 transition-all ${editingMaterial.type === type ? 'bg-pink-50 border-pink-400 text-pink-400' : 'bg-gray-50 border-transparent text-gray-400'}`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="space-y-4">
-                  <input type="text" defaultValue={editingMaterial.title || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="Título do Material" />
-                  <textarea defaultValue={editingMaterial.description || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none min-h-[100px]" placeholder="Breve descrição mágica..." />
-                  <input type="text" defaultValue={editingMaterial.url || ''} className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" placeholder="URL do Vídeo (YouTube/Vimeo) ou Link do PDF" />
-
-                  <div className="flex items-center gap-4">
-                    <select defaultValue={editingMaterial.section} className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold">
-                      <option value="KIDS">Espaço Kids</option>
-                      <option value="FAMILY">Espaço Família</option>
-                    </select>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    const formData: any = {
-                      title: (document.querySelector('input[placeholder="Título do Material"]') as HTMLInputElement)?.value || '',
-                      description: (document.querySelector('textarea[placeholder="Breve descrição mágica..."]') as HTMLTextAreaElement)?.value || '',
-                      type: editingMaterial.type || 'VIDEO',
-                      url: (document.querySelector('input[placeholder*="URL"]') as HTMLInputElement)?.value || '',
-                      thumbnail_url: editingMaterial.thumbnail_url || null,
-                      section: (document.querySelectorAll('select')[1] as HTMLSelectElement)?.value || 'KIDS',
-                      order: 0
-                    };
-                    if (editingMaterial.id) formData.id = editingMaterial.id;
-                    handleSaveMaterial(formData);
-                  }}
-                  disabled={loading}
-                  className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Salvando...' : 'Salvar Material ✨'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  };
-
-  const ProductCard = ({ product, onTryOn, ...props }: { product: Product, onTryOn: (p: Product) => void, [key: string]: any }) => (
-    <div className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-50 flex flex-col min-w-[240px] max-w-[240px] group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-        {product.is_featured && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-wider shadow-lg z-10 flex items-center gap-1">
-            <Star size={10} className="fill-white" /> Oferta
-          </div>
-        )}
-        <img
-          src={product.image || DEFAULT_IMAGE}
-          alt={product.name}
-          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${adjustImageForCategory(product.image || DEFAULT_IMAGE, product.category)}`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <button
-          onClick={() => onTryOn(product)}
-          className="absolute top-3 right-3 bg-gradient-to-br from-purple-400 to-pink-400 text-white p-2.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95"
-        >
-          <CameraIcon size={16} />
-        </button>
-      </div>
-      <div className="p-5 space-y-3">
-        <div className="space-y-1">
-          <h3 className="text-sm font-black text-[#6B5A53] uppercase tracking-tight line-clamp-1">{product.name}</h3>
-          {product.description && (
-            <p className="text-[10px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{product.description}</p>
-          )}
-        </div>
-        <div className="flex items-baseline gap-2">
-          <p className="text-xl font-black text-[#6B5A53]">R$ {product.price.toFixed(2)}</p>
-          {product.oldPrice && (
-            <p className="text-xs text-gray-400 line-through font-bold">R$ {product.oldPrice.toFixed(2)}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map(s => <StarIcon key={s} size={12} className="fill-yellow-400 text-yellow-400" />)}
-          <span className="text-[10px] text-gray-500 font-bold ml-1">(4.9)</span>
-        </div>
-        {product.sizes && product.sizes.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {product.sizes.map(s => (
-              <span key={s} className="px-2.5 py-1 bg-gradient-to-br from-gray-50 to-gray-100 text-[9px] font-black text-gray-600 rounded-lg border border-gray-200 uppercase">{s}</span>
-            ))}
-          </div>
-        )}
-        <button
-          onClick={() => addToCart(product)}
-          className="w-full py-3 bg-gradient-to-r from-[#6B5A53] to-[#5A4A43] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-md hover:shadow-lg active:scale-95 transition-all"
-        >
-          Adicionar ao Carrinho
-        </button>
-      </div>
-    </div>
-  );
-
-  const ProductCarousel = ({ title, products, onTryOn }: { title: string, products: Product[], onTryOn: (p: Product) => void }) => {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const scroll = (dir: 'left' | 'right') => {
-      if (scrollRef.current) {
-        const amt = dir === 'left' ? -300 : 300;
-        scrollRef.current.scrollBy({ left: amt, behavior: 'smooth' });
-      }
-    };
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-2">
-          <h2 className="text-sm font-black text-[#6B5A53] uppercase tracking-widest italic">{title}</h2>
-          <div className="flex gap-2">
-            <button onClick={() => scroll('left')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-[#6B5A53]"><ChevronLeft size={16} /></button>
-            <button onClick={() => scroll('right')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-[#6B5A53]"><ChevronRight size={16} /></button>
-          </div>
-        </div>
-        <div
-          ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 px-2 snap-x snap-mandatory"
-        >
-          {products.map(p => (
-            <div key={p.id} className="snap-start">
-              <ProductCard product={p} onTryOn={onTryOn} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const Sidebar = () => (
     <>
       <div
@@ -1643,7 +1196,6 @@ const App: React.FC = () => {
               </button>
             ))}
           </nav>
-
         </div>
       </div>
     </>
@@ -1652,35 +1204,43 @@ const App: React.FC = () => {
   const renderHome = () => (
     <div className="animate-in fade-in duration-500 pb-32">
       <HomeHero />
-      <AutoCarousel />
-      <DifferentialsSection />
+      <AutoCarousel
+        banners={topCarousel}
+        isAdminEditing={isAdminEditing}
+        onEdit={setEditingCarouselItem}
+        onAdd={() => setEditingCarouselItem({ id: '', image_url: '', type: 'TOP', order: topCarousel.length } as CarouselItem)}
+        defaultImage={DEFAULT_IMAGE}
+      />
+      <TryOnGuide onStart={() => navigateTo(AppSection.SHOP)} />
+      <DifferentialsSection onNavigate={navigateTo} onOpenClube={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }} />
+      <UGCGallery />
     </div>
   );
 
   const renderShop = () => (
     <div className="animate-in slide-in-from-right duration-500 min-h-screen pb-32">
       <CategoryMenu />
-
       <TryOnShowcase />
 
       <div className="mt-8 relative">
         {isAdminEditing && (
-          <div className="mx-6 mb-8 flex justify-between items-center bg-pink-50 p-6 rounded-[40px] border-2 border-dashed border-pink-200 animate-in fade-in zoom-in duration-500">
-            <div>
-              <h3 className="text-lg font-black text-pink-600 font-luna uppercase italic">Gestão da Vitrine ✨</h3>
-              <p className="text-[10px] text-pink-400 font-black uppercase tracking-widest">Adicione novos tesouros ou organize a ordem mágica.</p>
+          <div className="mx-6 mb-8 bg-pink-50 p-8 rounded-[40px] border-2 border-dashed border-pink-200 animate-in fade-in zoom-in duration-500 space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-black text-pink-600 font-luna uppercase italic">Gestão da Vitrine ✨</h3>
+                <p className="text-[10px] text-pink-400 font-black uppercase tracking-widest">Adicione novos tesouros ou organize a ordem mágica.</p>
+              </div>
+              <button
+                onClick={() => setEditingProduct({} as Product)}
+                className="bg-pink-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-pink-100"
+              >
+                <Plus size={18} />
+                Novo Produto
+              </button>
             </div>
-            <button
-              onClick={() => setEditingProduct({} as Product)}
-              className="bg-pink-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-pink-100"
-            >
-              <Plus size={18} />
-              Novo Produto
-            </button>
           </div>
         )}
 
-        {/* Ordenação */}
         <div className="flex justify-end mb-6 px-6">
           <div className="flex items-center gap-3 bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-gray-100">
             <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest pl-2">Ordenar por:</p>
@@ -1705,7 +1265,6 @@ const App: React.FC = () => {
           onEdit={(p) => setEditingProduct(p)}
         />
 
-        {/* Bloco Menina */}
         <DepartmentCarousel
           id="menina-bebe"
           title="🎀 Menina Bebê"
@@ -1727,8 +1286,6 @@ const App: React.FC = () => {
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
-
-        {/* Bloco Menino */}
         <DepartmentCarousel
           id="menino-bebe"
           title="🚀 Menino Bebê (0-2 anos)"
@@ -1750,8 +1307,6 @@ const App: React.FC = () => {
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
-
-        {/* Outras Categorias */}
         <DepartmentCarousel
           id="unissex"
           title="🌈 Unissex"
@@ -1780,18 +1335,23 @@ const App: React.FC = () => {
           isAdmin={isAdminEditing}
           onEdit={(p) => setEditingProduct(p)}
         />
-      </div>
 
-      <div className="px-6 lg:px-20 py-12 space-y-12">
-        <header className="space-y-4">
-          <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter italic">Nossa Coleção Completa</h2>
-          <p className="text-sm font-bold text-gray-400 italic">Explore todo o encanto da Luna Maria Kids.</p>
-        </header>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-          {products.map(product => (
-            <ProductCard key={product.id} product={product} onTryOn={(p) => { setSelectedProduct(p); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }} />
-          ))}
+        <div className="px-6 lg:px-20 py-12 space-y-12">
+          <header className="space-y-4">
+            <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase tracking-tighter italic">Nossa Coleção Completa</h2>
+            <p className="text-sm font-bold text-gray-400 italic">Explore todo o encanto da Luna Maria Kids.</p>
+          </header>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+            {products.map(product => (
+              <PremiumProductCard
+                key={product.id}
+                product={product}
+                onTryOn={(p) => { setSelectedProduct(p); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }}
+                onAddToCart={addToCart}
+                adjustImageForCategory={adjustImageForCategory}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -2148,14 +1708,29 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen relative font-quicksand bg-[#FAF8F5]">
+    <div className="min-h-screen relative font-quicksand bg-[#FAF8F5]" >
       <TopBar />
       <Header />
       <MobileSearch />
       <TickerBar />
 
       <ExternalIframeModal />
-      <AdminModals />
+      <AdminModals
+        editingProduct={editingProduct}
+        setEditingProduct={setEditingProduct}
+        handleSaveProduct={handleSaveProduct}
+        handleDeleteProduct={handleDeleteProduct}
+        editingCarouselItem={editingCarouselItem}
+        setEditingCarouselItem={setEditingCarouselItem}
+        handleSaveCarousel={handleSaveCarousel}
+        handleDeleteCarousel={handleDeleteCarousel}
+        editingMaterial={editingMaterial}
+        setEditingMaterial={setEditingMaterial}
+        handleSaveMaterial={handleSaveMaterial}
+        handleDeleteMaterial={handleDeleteMaterial}
+        loading={loading}
+        defaultImage={DEFAULT_IMAGE}
+      />
 
       <Sidebar />
 
@@ -2199,7 +1774,8 @@ const App: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      )
+      }
 
       {showHomeTryOnInfo && renderHomeTryOnPopup()}
       <LoginModal />
