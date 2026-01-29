@@ -7,7 +7,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 export const register = async (req: Request, res: Response) => {
     try {
-        const { name, email, password, phone, numChildren, childrenDetails } = req.body;
+        let { name, email, password, phone, numChildren, childrenDetails } = req.body;
+        name = name?.trim();
+        email = email?.trim();
+        password = password?.trim();
         console.log("RECEIVED REGISTER DATA:", { name, email, phone, numChildren, childrenDetails }); // DEBUG LOG
 
         const userExists = await prisma.user.findUnique({ where: { email } });

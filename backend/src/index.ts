@@ -17,12 +17,19 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+import path from "path";
+import uploadRoutes from "./routes/upload.routes.js";
+
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
 app.use("/try-on", tryOnRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/admin", adminRoutes);
+app.use("/upload", uploadRoutes);
+
+// Servir arquivos estáticos (uploads)
+app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));
 
 app.get("/health", (req, res) => {
     res.json({ status: "ok", message: "Luna Maria Kids API is running" });

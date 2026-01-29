@@ -27,10 +27,39 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
     editingCarouselItem, setEditingCarouselItem, handleSaveCarousel, handleDeleteCarousel,
     editingMaterial, setEditingMaterial, handleSaveMaterial, handleDeleteMaterial,
     loading, defaultImage
+    loading, defaultImage
 }) => {
     // Local states for real-time preview
     const [productPreview, setProductPreview] = useState<string>('');
     const [carouselPreview, setCarouselPreview] = useState<string>('');
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlCallback: (url: string) => void) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setUploading(true);
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setUrlCallback(data.url);
+            } else {
+                alert('Erro ao fazer upload da imagem');
+            }
+        } catch (error) {
+            alert('Erro ao fazer upload da imagem');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     useEffect(() => {
         if (editingProduct) setProductPreview(editingProduct.image || '');
@@ -69,15 +98,26 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">URL da Imagem Mágica</label>
-                                    <input
-                                        type="text"
-                                        id="product-image-url"
-                                        defaultValue={editingProduct.image || ''}
-                                        onChange={(e) => setProductPreview(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-100 transition-all"
-                                        placeholder="https://exemplo.com/imagem.png"
-                                    />
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">URL da Imagem Mágica (ou Upload)</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="product-image-url"
+                                            value={productPreview}
+                                            onChange={(e) => setProductPreview(e.target.value)}
+                                            className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-100 transition-all"
+                                            placeholder="https://exemplo.com/imagem.png"
+                                        />
+                                        <label className={`bg-pink-50 text-pink-400 px-4 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-pink-100 transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={(e) => handleFileUpload(e, (url) => setProductPreview(url))}
+                                            />
+                                            {uploading ? <span className="animate-spin text-xs">⏳</span> : <Plus size={20} />}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -153,7 +193,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                                 category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
                                                 displayOrder: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
                                                 stock: parseInt((document.querySelector('#product-stock') as HTMLInputElement)?.value || '10'),
-                                                image: (document.querySelector('#product-image-url') as HTMLInputElement)?.value || editingProduct.image || defaultImage,
+                                                image: productPreview || defaultImage,
                                                 sizes: (document.querySelector('#product-sizes') as HTMLInputElement)?.value.split(',').map(s => s.trim()).filter(s => s) || [],
                                                 is_featured: (document.querySelector('#product-featured') as HTMLInputElement)?.checked || false
                                             };
@@ -206,14 +246,25 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">URL do Banner</label>
-                                    <input
-                                        type="text"
-                                        id="carousel-image-url"
-                                        defaultValue={editingCarouselItem.image_url || ''}
-                                        onChange={(e) => setCarouselPreview(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
-                                        placeholder="https://..."
-                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="carousel-image-url"
+                                            value={carouselPreview}
+                                            onChange={(e) => setCarouselPreview(e.target.value)}
+                                            className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
+                                            placeholder="https://..."
+                                        />
+                                        <label className={`bg-gray-100 text-gray-400 px-4 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={(e) => handleFileUpload(e, (url) => setCarouselPreview(url))}
+                                            />
+                                            {uploading ? <span className="animate-spin text-xs">⏳</span> : <Plus size={20} />}
+                                        </label>
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Título do Banner</label>
@@ -237,7 +288,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                     onClick={() => {
                                         const formData: CarouselItem = {
                                             id: editingCarouselItem.id || '',
-                                            image_url: (document.querySelector('#carousel-image-url') as HTMLInputElement)?.value || defaultImage,
+                                            image_url: carouselPreview || defaultImage,
                                             title: (document.querySelector('#carousel-title') as HTMLInputElement)?.value || '',
                                             subtitle: (document.querySelector('#carousel-subtitle') as HTMLInputElement)?.value || '',
                                             type: (document.querySelector('#carousel-type') as HTMLSelectElement)?.value as 'TOP' | 'FEATURED',
