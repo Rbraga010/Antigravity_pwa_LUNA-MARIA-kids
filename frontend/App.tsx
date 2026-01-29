@@ -1112,8 +1112,8 @@ const App: React.FC = () => {
 
                   <button
                     onClick={async () => {
-                      const email = (document.querySelector('#login-email') as HTMLInputElement)?.value;
-                      const password = (document.querySelector('#login-password') as HTMLInputElement)?.value;
+                      const email = (document.querySelector('#login-email') as HTMLInputElement)?.value.trim();
+                      const password = (document.querySelector('#login-password') as HTMLInputElement)?.value.trim();
 
                       if (!email || !password) {
                         setMascotMsg('Preencha email e senha!');
