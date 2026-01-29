@@ -27,7 +27,6 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
     editingCarouselItem, setEditingCarouselItem, handleSaveCarousel, handleDeleteCarousel,
     editingMaterial, setEditingMaterial, handleSaveMaterial, handleDeleteMaterial,
     loading, defaultImage
-    loading, defaultImage
 }) => {
     // Local states for real-time preview
     const [productPreview, setProductPreview] = useState<string>('');
