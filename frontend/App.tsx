@@ -114,15 +114,15 @@ const App: React.FC = () => {
   const mapBackendProductToFrontend = (p: any): Product => ({
     id: p.id,
     name: p.name,
-    price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
-    oldPrice: p.old_price ? (typeof p.old_price === 'string' ? parseFloat(p.old_price) : p.old_price) : undefined,
-    image: p.image_url,
-    category: p.category,
-    description: p.description,
-    displayOrder: p.display_order,
+    price: typeof p.price === 'string' ? parseFloat(p.price) : (p.price || 0),
+    oldPrice: p.oldPrice !== undefined ? p.oldPrice : (p.old_price ? (typeof p.old_price === 'string' ? parseFloat(p.old_price) : p.old_price) : undefined),
+    image: p.image || p.image_url || '',
+    category: p.category || 'geral',
+    description: p.description || '',
+    displayOrder: p.displayOrder !== undefined ? p.displayOrder : p.display_order,
     sizes: p.sizes || [],
     is_featured: p.is_featured || false,
-    stock: p.stock
+    stock: p.stock || 0
   });
 
   // Load initial data and check authentication

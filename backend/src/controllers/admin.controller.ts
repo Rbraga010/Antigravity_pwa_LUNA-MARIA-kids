@@ -5,17 +5,22 @@ import prisma from "../prisma.js";
 
 export const createProduct = async (req: Request, res: Response) => {
     try {
-        const { name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
+        const {
+            name, description, price, oldPrice, old_price,
+            image, image_url, stock, category,
+            displayOrder, display_order, sizes
+        } = req.body;
+
         const product = await prisma.product.create({
             data: {
                 name,
-                description,
-                price,
-                old_price,
-                image_url,
-                stock: stock !== undefined ? stock : 0,
-                category,
-                display_order: display_order || 0,
+                description: description || '',
+                price: parseFloat(String(price || 0)),
+                old_price: oldPrice !== undefined ? parseFloat(String(oldPrice)) : (old_price !== undefined ? parseFloat(String(old_price)) : null),
+                image_url: image || image_url || '',
+                stock: stock !== undefined ? parseInt(String(stock)) : 0,
+                category: category || 'geral',
+                display_order: displayOrder !== undefined ? parseInt(String(displayOrder)) : (display_order !== undefined ? parseInt(String(display_order)) : 0),
                 sizes: sizes || []
             }
         });
@@ -29,19 +34,23 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, description, price, old_price, image_url, stock, category, display_order, sizes } = req.body;
+        const {
+            name, description, price, oldPrice, old_price,
+            image, image_url, stock, category,
+            displayOrder, display_order, sizes
+        } = req.body;
 
         const product = await prisma.product.update({
             where: { id: id as string },
             data: {
                 name,
                 description,
-                price,
-                old_price,
-                image_url,
-                stock,
+                price: price !== undefined ? parseFloat(String(price)) : undefined,
+                old_price: oldPrice !== undefined ? parseFloat(String(oldPrice)) : (old_price !== undefined ? parseFloat(String(old_price)) : undefined),
+                image_url: image !== undefined ? image : (image_url !== undefined ? image_url : undefined),
+                stock: stock !== undefined ? parseInt(String(stock)) : undefined,
                 category,
-                display_order,
+                display_order: displayOrder !== undefined ? parseInt(String(displayOrder)) : (display_order !== undefined ? parseInt(String(display_order)) : undefined),
                 sizes
             }
         });
