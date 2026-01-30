@@ -69,21 +69,29 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
+        console.log('🔐 Login attempt received:', req.body);
         let { email, password } = req.body;
         email = email?.trim();
         password = password?.trim();
+        console.log('📧 Email after trim:', email);
 
         const user = await prisma.user.findUnique({ where: { email } });
+        console.log('👤 User found:', user ? `${user.email} (${user.role})` : 'NOT FOUND');
+
         if (!user) {
             return res.status(400).json({ message: "Credenciais inválidas" });
         }
 
+        console.log('🔑 Comparing password...');
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+        console.log('✅ Password valid:', isPasswordValid);
+
         if (!isPasswordValid) {
             return res.status(400).json({ message: "Credenciais inválidas" });
         }
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+        console.log('🎫 Token generated successfully');
 
         return res.json({
             user: {
@@ -96,7 +104,8 @@ export const login = async (req: Request, res: Response) => {
             token
         });
     } catch (error) {
-        return res.status(500).json({ message: "Erro ao fazer login", error });
+        console.error('❌ LOGIN ERROR:', error);
+        return res.status(500).json({ message: "Erro ao fazer login", error: String(error) });
     }
 };
 
