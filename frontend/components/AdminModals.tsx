@@ -46,6 +46,8 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
             const blob = await upload(file.name, file, {
                 access: 'public',
                 handleUploadUrl: '/api/upload',
+                clientPayload: JSON.stringify({ uploadedBy: 'admin' }),
+                addRandomSuffix: true, // Prevent duplicate filename errors
             });
 
             console.log('✅ Upload successful:', blob.url);

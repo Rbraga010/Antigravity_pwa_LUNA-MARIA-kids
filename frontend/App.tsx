@@ -306,8 +306,8 @@ const App: React.FC = () => {
   const handleSaveProduct = async (productData: Product) => {
     try {
       setLoading(true);
-      const method = productData.id ? 'PUT' : 'POST';
-      const url = '/api/products';
+      const method = productData.id ? 'PATCH' : 'POST';
+      const url = '/api/admin/products';
 
       const response = await fetch(url, {
         method,
@@ -367,8 +367,8 @@ const App: React.FC = () => {
   const handleSaveCarousel = async (carouselData: CarouselItem) => {
     try {
       setLoading(true);
-      const method = carouselData.id ? 'PUT' : 'POST';
-      const url = '/api/carousels';
+      const method = carouselData.id ? 'PATCH' : 'POST';
+      const url = '/api/admin/carousels';
 
       const response = await fetch(url, {
         method,
@@ -443,8 +443,8 @@ const App: React.FC = () => {
   const handleSaveMaterial = async (materialData: ContentMaterial) => {
     try {
       setLoading(true);
-      const method = materialData.id ? 'PUT' : 'POST';
-      const url = '/api/materials';
+      const method = materialData.id ? 'PATCH' : 'POST';
+      const url = '/api/admin/content';
 
       const response = await fetch(url, {
         method,
