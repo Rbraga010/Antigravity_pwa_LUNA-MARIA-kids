@@ -18,6 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return {
                     allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
                     maximumSizeInBytes: 10 * 1024 * 1024, // 10MB
+                    addRandomSuffix: true, // Generate unique filenames
                 };
             },
             onUploadCompleted: async ({ blob, tokenPayload }) => {
