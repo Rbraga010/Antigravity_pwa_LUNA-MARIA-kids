@@ -18,6 +18,15 @@ interface AdminModalsProps {
     handleSaveMaterial: (m: ContentMaterial) => void;
     handleDeleteMaterial: (id: string, section: 'KIDS' | 'FAMILY') => void;
 
+    editingUgcItem?: any | null;
+    setEditingUgcItem?: (item: any | null) => void;
+    handleSaveUgc?: (item: any) => void;
+    handleDeleteUgc?: (id: string) => void;
+
+    editingUser?: any | null;
+    setEditingUser?: (u: any | null) => void;
+    handleSaveUser?: (u: any) => void;
+
     loading: boolean;
     defaultImage: string;
 }
@@ -26,6 +35,8 @@ export const AdminModalsComponent: React.FC<AdminModalsProps> = ({
     editingProduct, setEditingProduct, handleSaveProduct, handleDeleteProduct,
     editingCarouselItem, setEditingCarouselItem, handleSaveCarousel, handleDeleteCarousel,
     editingMaterial, setEditingMaterial, handleSaveMaterial, handleDeleteMaterial,
+    editingUgcItem, setEditingUgcItem, handleSaveUgc, handleDeleteUgc,
+    editingUser, setEditingUser, handleSaveUser,
     loading, defaultImage
 }) => {
     // Local states for real-time preview
@@ -148,8 +159,8 @@ export const AdminModalsComponent: React.FC<AdminModalsProps> = ({
                                         <input type="number" id="product-price" defaultValue={editingProduct.price || 0} step="0.01" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Preço Antigo (Opcional)</label>
-                                        <input type="number" id="product-old-price" defaultValue={editingProduct.oldPrice || 0} step="0.01" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" />
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Preço de Custo (R$)</label>
+                                        <input type="number" id="product-cost-price" defaultValue={editingProduct.costPrice || 0} step="0.01" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" />
                                     </div>
                                 </div>
 
@@ -187,6 +198,7 @@ export const AdminModalsComponent: React.FC<AdminModalsProps> = ({
                                                 name: (document.querySelector('#product-name') as HTMLInputElement)?.value || editingProduct.name || 'Novo Produto',
                                                 description: (document.querySelector('#product-description') as HTMLTextAreaElement)?.value || editingProduct.description || '',
                                                 price: parseFloat((document.querySelector('#product-price') as HTMLInputElement)?.value || '0'),
+                                                costPrice: parseFloat((document.querySelector('#product-cost-price') as HTMLInputElement)?.value || '0'),
                                                 oldPrice: parseFloat((document.querySelector('#product-old-price') as HTMLInputElement)?.value || '0') || undefined,
                                                 category: (document.querySelector('#product-category') as HTMLSelectElement)?.value || editingProduct.category || 'menina-bebe',
                                                 displayOrder: parseInt((document.querySelector('#product-order') as HTMLInputElement)?.value || '0'),
@@ -377,6 +389,147 @@ export const AdminModalsComponent: React.FC<AdminModalsProps> = ({
                                     </button>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* UGC Modal */}
+            {editingUgcItem && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative">
+                        <button onClick={() => setEditingUgcItem?.(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
+
+                        <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Prova Social (UGC) ✨</h3>
+
+                        <div className="space-y-6">
+                            <div className="aspect-square bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-100 flex items-center justify-center relative overflow-hidden group">
+                                {editingUgcItem.image_url ? (
+                                    <img src={editingUgcItem.image_url} className="w-full h-full object-cover" alt="Preview" />
+                                ) : (
+                                    <div className="text-center p-6 text-gray-300">
+                                        <Download size={32} className="mx-auto mb-2 opacity-50" />
+                                        <p className="text-[9px] font-black uppercase tracking-widest">Suba uma foto de cliente</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Foto do Cliente</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        id="ugc-image-url"
+                                        value={editingUgcItem.image_url || ''}
+                                        onChange={(e) => setEditingUgcItem?.({ ...editingUgcItem, image_url: e.target.value })}
+                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
+                                        placeholder="https://..."
+                                    />
+                                    <label className={`bg-gray-100 text-gray-400 px-4 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors`}>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileUpload(e, (url) => setEditingUgcItem?.({ ...editingUgcItem, image_url: url }))}
+                                        />
+                                        <Plus size={20} />
+                                    </label>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Descrição/Hashtag</label>
+                                    <input
+                                        type="text"
+                                        id="ugc-description"
+                                        defaultValue={editingUgcItem.description || ''}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
+                                        placeholder="Ex: #LunaMariaMoment na Bahia"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        const formData = {
+                                            ...editingUgcItem,
+                                            image_url: editingUgcItem.image_url || '',
+                                            description: (document.querySelector('#ugc-description') as HTMLInputElement)?.value || ''
+                                        };
+                                        handleSaveUgc?.(formData);
+                                    }}
+                                    disabled={loading}
+                                    className="flex-1 bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {loading ? 'Salvando...' : 'Publicar na Galeria ✨'}
+                                </button>
+                                {editingUgcItem.id && (
+                                    <button
+                                        onClick={() => handleDeleteUgc?.(editingUgcItem.id)}
+                                        className="p-5 bg-red-50 text-red-400 rounded-2xl hover:bg-red-100 transition-colors"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* User Modal */}
+            {editingUser && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl p-10 space-y-8 animate-in zoom-in duration-500 relative">
+                        <button onClick={() => setEditingUser?.(null)} className="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all"><X size={24} /></button>
+
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-black text-[#6B5A53] font-luna uppercase italic">Perfil do Cliente ✨</h3>
+                            <p className="text-[10px] font-black uppercase text-pink-400 tracking-widest">{editingUser.categoryDisplay || 'Curte'} Luna Maria</p>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-[32px]">
+                                <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 text-2xl font-black uppercase">
+                                    {editingUser.name?.charAt(0)}
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="font-black text-[#6B5A53]">{editingUser.name}</p>
+                                    <p className="text-[10px] font-bold text-gray-400">{editingUser.email}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Tipo de Acesso</label>
+                                    <select
+                                        id="user-is-subscriber"
+                                        defaultValue={editingUser.is_subscriber ? 'true' : 'false'}
+                                        className="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none"
+                                    >
+                                        <option value="false">Membro Gratuito</option>
+                                        <option value="true">Assinante Estrela</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Número de Filhos</label>
+                                    <input type="number" id="user-children" defaultValue={editingUser.num_children || 0} className="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none" />
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    const formData = {
+                                        ...editingUser,
+                                        is_subscriber: (document.querySelector('#user-is-subscriber') as HTMLSelectElement)?.value === 'true',
+                                        num_children: parseInt((document.querySelector('#user-children') as HTMLInputElement)?.value || '0')
+                                    };
+                                    handleSaveUser?.(formData);
+                                }}
+                                disabled={loading}
+                                className="w-full bg-pink-400 text-white py-5 rounded-[28px] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                {loading ? 'Salvando...' : 'Atualizar Cliente ✨'}
+                            </button>
                         </div>
                     </div>
                 </div>

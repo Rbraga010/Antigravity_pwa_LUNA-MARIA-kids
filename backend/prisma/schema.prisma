@@ -51,6 +51,7 @@ model Product {
   description   String
   price         Decimal    @db.Decimal(10, 2)
   old_price     Decimal?   @db.Decimal(10, 2)
+  cost_price    Decimal?   @db.Decimal(10, 2)
   image_url     String
   stock         Int?       @default(0)
   category      String
@@ -164,4 +165,21 @@ model Reward {
   created_at DateTime @default(now())
 
   @@map("rewards")
+}
+
+model UGCItem {
+  id          String   @id @default(uuid())
+  image_url   String
+  description String?
+  created_at  DateTime @default(now())
+
+  @@map("ugc_items")
+}
+
+model SiteVisit {
+  id         String   @id @default(uuid())
+  type       String   // 'SHOP', 'CLUB', 'HOME'
+  created_at DateTime @default(now())
+
+  @@map("site_visits")
 }

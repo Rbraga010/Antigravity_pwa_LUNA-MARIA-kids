@@ -19,6 +19,7 @@ app.use(express.json());
 
 import path from "path";
 import uploadRoutes from "./routes/upload.routes.js";
+import ugcRoutes from "./routes/ugc.routes.js";
 
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
@@ -27,6 +28,7 @@ app.use("/try-on", tryOnRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/admin", adminRoutes);
 app.use("/upload", uploadRoutes);
+app.use("/ugc", ugcRoutes);
 
 // Servir arquivos estáticos (uploads)
 app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));

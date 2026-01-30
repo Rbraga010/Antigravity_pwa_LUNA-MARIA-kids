@@ -96,10 +96,13 @@ const App: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingCarouselItem, setEditingCarouselItem] = useState<CarouselItem | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<ContentMaterial | null>(null);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
   const [sortOption, setSortOption] = useState<'default' | 'price_asc' | 'price_desc' | 'newest'>('default');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [ugcItems, setUgcItems] = useState<any[]>([]);
+  const [editingUgcItem, setEditingUgcItem] = useState<any | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -122,7 +125,8 @@ const App: React.FC = () => {
     displayOrder: p.displayOrder !== undefined ? p.displayOrder : (p.display_order !== undefined ? p.display_order : 0),
     sizes: p.sizes || [],
     is_featured: p.is_featured || false,
-    stock: p.stock || 0
+    stock: p.stock || 0,
+    costPrice: typeof p.cost_price === 'string' ? parseFloat(p.cost_price) : (p.cost_price || 0)
   });
 
   // Load initial data and check authentication
@@ -182,6 +186,15 @@ const App: React.FC = () => {
         } catch (e) {
           setKidsMaterials(SAMPLE_KIDS_MATERIALS);
           setFamilyMaterials(SAMPLE_FAMILY_MATERIALS);
+        }
+        try {
+          const ugcRes = await fetch('/api/ugc');
+          if (ugcRes.ok) {
+            const ugcData = await ugcRes.json();
+            setUgcItems(ugcData);
+          }
+        } catch (e) {
+          // Fallback to empty
         }
       } catch (error) {
         console.error('Failed to load data:', error);
@@ -279,22 +292,25 @@ const App: React.FC = () => {
   // API Handlers for Admin Operations
   const fetchAllUsers = async () => {
     try {
-      const res = await fetch('/api/admin/users', { headers: getAuthHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        setAllUsers(data);
+      setLoading(true);
+      const response = await fetch('/api/admin-stats', {
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAllUsers(data.usersCategorized || data.recentUsers || []);
       }
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setLoading(false);
     }
   };
-
   const toggleUserSubscription = async (userId: string, currentStatus: boolean) => {
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ is_subscriber: !currentStatus })
       });
       if (res.ok) {
         fetchAllUsers();
@@ -346,10 +362,9 @@ const App: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/products', {
+      const response = await fetch(`/api/admin/products/${productId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ id: productId })
       });
 
       if (response.ok) {
@@ -418,10 +433,9 @@ const App: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/carousels', {
+      const response = await fetch(`/api/admin/carousels/${carouselId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ id: carouselId })
       });
 
       if (response.ok) {
@@ -494,10 +508,9 @@ const App: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/materials', {
+      const response = await fetch(`/api/admin/content/${materialId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ id: materialId })
       });
 
       if (response.ok) {
@@ -513,6 +526,75 @@ const App: React.FC = () => {
       }
     } catch (error) {
       setMascotMsg('Erro ao excluir material.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveUgc = async (item: any) => {
+    try {
+      setLoading(true);
+      const isNew = !item.id;
+      const url = isNew ? '/api/ugc' : `/api/ugc/${item.id}`;
+      const method = isNew ? 'POST' : 'PUT';
+
+      const response = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(item)
+      });
+
+      if (response.ok) {
+        const saved = await response.json();
+        if (isNew) setUgcItems(prev => [saved, ...prev]);
+        else setUgcItems(prev => prev.map(i => i.id === saved.id ? saved : i));
+        setEditingUgcItem(null);
+      }
+    } catch (error) {
+      console.error('Failed to save UGC:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUgc = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta foto da galeria?')) return;
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/ugc/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        setUgcItems(prev => prev.filter(i => i.id !== id));
+        setEditingUgcItem(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete UGC:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateUser = async (userData: any) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/users/${userData.id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(userData)
+      });
+
+      if (response.ok) {
+        fetchAllUsers();
+        setEditingUser(null);
+        setMascotMsg('Usuário atualizado com sucesso! ✨');
+      } else {
+        setMascotMsg('Erro ao atualizar usuário.');
+      }
+    } catch (error) {
+      setMascotMsg('Erro ao atualizar usuário.');
     } finally {
       setLoading(false);
     }
@@ -534,10 +616,22 @@ const App: React.FC = () => {
 
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  const trackVisit = async (type: string) => {
+    try {
+      fetch('/api/track-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type })
+      }).catch(() => { }); // Fire and forget
+    } catch { }
+  };
+
   const navigateTo = (newSection: AppSection) => {
     setSection(newSection);
     setIsSidebarOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (newSection === AppSection.SHOP) trackVisit('SHOP');
     setTryOnStep(0);
     setTryOnResult(null);
     setUserImage(null);
@@ -749,25 +843,7 @@ const App: React.FC = () => {
   );
 
 
-  const TryOnShowcase = () => (
-    <section className="px-6 lg:px-20 py-6 bg-gradient-to-br from-pink-50/30 to-blue-50/30">
-      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 lg:p-8 flex items-center gap-6 shadow-sm border border-gray-100 hover:shadow-md transition-all">
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center text-white shrink-0"><Sparkles size={16} /></div>
-            <h3 className="text-lg font-black text-[#6B5A53] font-luna uppercase italic">Provador Inteligente</h3>
-          </div>
-          <p className="text-xs font-bold text-gray-500 italic">Veja como fica antes de comprar. Exclusivo Luna Maria.</p>
-        </div>
-        <button
-          onClick={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }}
-          className="px-6 py-3 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
-        >
-          Testar Agora ✨
-        </button>
-      </div>
-    </section>
-  );
+  // Removido TryOnShowcase conforme pedido do usuário
 
   const ExternalIframeModal = () => (
     <div className={`fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center transition-all duration-500 ${showIframeModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
@@ -791,6 +867,8 @@ const App: React.FC = () => {
       </div>
     </div>
   );
+
+  // UGC functions moved to handleSaveUgc and handleDeleteUgc
 
   const DepartmentCarousel = ({ id, title, products, isAdmin, onEdit }: { id: string, title: string, products: Product[], isAdmin?: boolean, onEdit?: (p: Product) => void }) => (
     <section id={id} className={`px-6 lg:px-20 py-12 space-y-8 overflow-hidden transition-all ${isAdmin ? 'bg-pink-50/20' : ''}`}>
@@ -832,9 +910,8 @@ const App: React.FC = () => {
                 onTryOn={(selected) => {
                   setSelectedProduct(selected);
                   if (!isSubscriber) {
-                    setShowSubscriptionPopup(true);
-                  } else {
-                    setShowTryOnModal(true);
+                    setIframeUrl(CLUB_URL);
+                    setShowIframeModal(true);
                   }
                 }}
                 onAddToCart={addToCart}
@@ -1195,7 +1272,7 @@ const App: React.FC = () => {
               { label: 'Loja Mágica', icon: ShoppingBag, section: AppSection.SHOP },
               { label: 'Espaço Kids', icon: Gamepad2, section: AppSection.KIDS },
               { label: 'Espaço Família', icon: UsersIcon, section: AppSection.FAMILY_MOMENT },
-              { label: 'Clube da Luna', icon: Heart, onClick: () => { setIframeUrl(CLUB_URL); setShowIframeModal(true); } },
+              { label: 'Clube da Luna', icon: Heart, onClick: () => { trackVisit('CLUB'); setIframeUrl(CLUB_URL); setShowIframeModal(true); } },
               { label: user.email ? 'Minha Conta' : 'Entrar / Cadastrar', icon: User, onClick: () => setShowLoginModal(true) },
               ...(user.email && user.role === 'SUPER_ADMIN' ? [{ label: 'Painel Admin', icon: Settings2, section: AppSection.ADMIN_DASHBOARD }] : []),
             ].map((item, i) => (
@@ -1226,14 +1303,18 @@ const App: React.FC = () => {
       />
       <TryOnGuide onStart={() => navigateTo(AppSection.SHOP)} />
       <DifferentialsSection onNavigate={navigateTo} onOpenClube={() => { setIframeUrl(CLUB_URL); setShowIframeModal(true); }} />
-      <UGCGallery />
+      <UGCGallery
+        items={ugcItems}
+        isAdmin={isAdminEditing}
+        onEdit={setEditingUgcItem}
+      />
     </div>
   );
 
   const renderShop = () => (
     <div className="animate-in slide-in-from-right duration-500 min-h-screen pb-32">
       <CategoryMenu />
-      <TryOnShowcase />
+      {/* Removido TryOnShowcase por solicitação */}
 
       <div className="mt-8 relative">
         {isAdminEditing && (
@@ -1596,7 +1677,7 @@ const App: React.FC = () => {
       <div className="pt-24 p-6 lg:p-12 space-y-12 animate-in fade-in duration-500 min-h-screen max-w-[1200px] mx-auto outline-none">
         <div className="flex justify-between items-end border-b border-gray-100 pb-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Painel da Luna ✨</h2>
+            <h2 className="text-3xl font-black text-[#6B5A53] font-luna uppercase italic tracking-tighter">Governança Luna Maria Kids ✨</h2>
             <p className="text-gray-400 font-bold italic">Gestão da Loja e Conteúdos</p>
           </div>
           <button onClick={() => setIsAdminEditing(!isAdminEditing)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${isAdminEditing ? 'bg-pink-400 text-white' : 'bg-white text-pink-400 border border-pink-100'}`}>
@@ -1629,8 +1710,8 @@ const App: React.FC = () => {
                 <thead>
                   <tr className="bg-gray-50/50">
                     <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Contato</th>
-                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Esteira</th>
+                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Compras / Plano</th>
+                    <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Categoria ✨</th>
                     <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
                   </tr>
                 </thead>
@@ -1656,18 +1737,25 @@ const App: React.FC = () => {
                           </div>
                         </td>
                         <td className="p-8">
-                          <p className="text-xs font-bold text-gray-500">{u.phone || 'N/A'}</p>
-                          <p className="text-[10px] text-gray-300 font-bold">{u._count?.children || 0} filhos cadastrados</p>
-                        </td>
-                        <td className="p-8">
-                          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${u.leadType === 'Lead Assinante' ? 'bg-purple-50 text-purple-400' :
-                            u.leadType === 'Lead Cliente' ? 'bg-green-50 text-green-400' :
-                              'bg-blue-50 text-blue-400'
-                            }`}>
-                            <span className="text-[9px] font-black uppercase tracking-widest">{u.leadType || 'Lead Cadastrado'}</span>
+                          <div className="space-y-1">
+                            <p className="text-sm font-black text-[#6B5A53]">{(u as any).orderCount || 0} Compras</p>
+                            <p className={`text-[9px] font-black uppercase tracking-widest ${u.is_subscriber ? 'text-purple-400' : 'text-gray-300'}`}>
+                              {u.is_subscriber ? 'Assinante Ativo' : 'Não Assinante'}
+                            </p>
                           </div>
                         </td>
                         <td className="p-8">
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${(u as any).categoryDisplay === 'Ama' ? 'bg-pink-100 text-pink-500' :
+                            (u as any).categoryDisplay === 'Adora' ? 'bg-purple-100 text-purple-500' :
+                              'bg-gray-100 text-gray-400'
+                            }`}>
+                            {(u as any).categoryDisplay || 'Curte'}
+                          </span>
+                        </td>
+                        <td className="p-8">
+                          <button onClick={() => setEditingUser(u)} className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-pink-400 transition-all">
+                            <Settings2 size={18} />
+                          </button>
                           <button
                             onClick={() => toggleUserSubscription(u.id, u.is_subscriber)}
                             className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${u.is_subscriber ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400' : 'bg-purple-400 text-white shadow-lg hover:scale-105'}`}
@@ -1728,22 +1816,31 @@ const App: React.FC = () => {
       <TickerBar />
 
       <ExternalIframeModal />
-      <AdminModalsComponent
-        editingProduct={editingProduct}
-        setEditingProduct={setEditingProduct}
-        handleSaveProduct={handleSaveProduct}
-        handleDeleteProduct={handleDeleteProduct}
-        editingCarouselItem={editingCarouselItem}
-        setEditingCarouselItem={setEditingCarouselItem}
-        handleSaveCarousel={handleSaveCarousel}
-        handleDeleteCarousel={handleDeleteCarousel}
-        editingMaterial={editingMaterial}
-        setEditingMaterial={setEditingMaterial}
-        handleSaveMaterial={handleSaveMaterial}
-        handleDeleteMaterial={handleDeleteMaterial}
-        loading={loading}
-        defaultImage={DEFAULT_IMAGE}
-      />
+      {editingUgcItem !== undefined && (
+        <AdminModalsComponent
+          editingProduct={editingProduct}
+          setEditingProduct={setEditingProduct}
+          handleSaveProduct={handleSaveProduct}
+          handleDeleteProduct={handleDeleteProduct}
+          editingCarouselItem={editingCarouselItem}
+          setEditingCarouselItem={setEditingCarouselItem}
+          handleSaveCarousel={handleSaveCarousel}
+          handleDeleteCarousel={handleDeleteCarousel}
+          editingMaterial={editingMaterial}
+          setEditingMaterial={setEditingMaterial}
+          handleSaveMaterial={handleSaveMaterial}
+          handleDeleteMaterial={handleDeleteMaterial}
+          editingUgcItem={editingUgcItem}
+          setEditingUgcItem={setEditingUgcItem}
+          handleSaveUgc={handleSaveUgc}
+          handleDeleteUgc={handleDeleteUgc}
+          editingUser={editingUser}
+          setEditingUser={setEditingUser}
+          handleSaveUser={handleUpdateUser}
+          loading={loading}
+          defaultImage={DEFAULT_IMAGE}
+        />
+      )}
 
       <TryOnModal
         isOpen={showTryOnModal}

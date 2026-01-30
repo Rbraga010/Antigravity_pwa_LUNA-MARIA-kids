@@ -6,7 +6,7 @@ import prisma from "../prisma.js";
 export const createProduct = async (req: Request, res: Response) => {
     try {
         const {
-            name, description, price, oldPrice, old_price,
+            name, description, price, oldPrice, old_price, cost_price,
             image, image_url, stock, category,
             displayOrder, display_order, sizes, is_featured
         } = req.body;
@@ -17,6 +17,7 @@ export const createProduct = async (req: Request, res: Response) => {
                 description: description || '',
                 price: parseFloat(String(price || 0)),
                 old_price: oldPrice !== undefined ? parseFloat(String(oldPrice)) : (old_price !== undefined ? parseFloat(String(old_price)) : null),
+                cost_price: cost_price !== undefined ? parseFloat(String(cost_price)) : null,
                 image_url: image || image_url || '',
                 stock: stock !== undefined ? parseInt(String(stock)) : 0,
                 category: category || 'geral',
@@ -36,7 +37,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const {
-            name, description, price, oldPrice, old_price,
+            name, description, price, oldPrice, old_price, cost_price,
             image, image_url, stock, category,
             displayOrder, display_order, sizes, is_featured
         } = req.body;
@@ -48,6 +49,7 @@ export const updateProduct = async (req: Request, res: Response) => {
                 description,
                 price: price !== undefined ? parseFloat(String(price)) : undefined,
                 old_price: oldPrice !== undefined ? parseFloat(String(oldPrice)) : (old_price !== undefined ? parseFloat(String(old_price)) : undefined),
+                cost_price: cost_price !== undefined ? parseFloat(String(cost_price)) : undefined,
                 image_url: (image !== undefined || image_url !== undefined) ? (image || image_url) : undefined,
                 stock: stock !== undefined ? parseInt(String(stock)) : undefined,
                 category,
@@ -244,13 +246,70 @@ export const getUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { role, is_subscriber } = req.body;
+        const { role, is_subscriber, num_children } = req.body;
         const user = await prisma.user.update({
             where: { id: id as string },
-            data: { role, is_subscriber }
+            data: {
+                role,
+                is_subscriber,
+                num_children: num_children !== undefined ? parseInt(String(num_children)) : undefined
+            }
         });
         return res.json(user);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao atualizar usuário", error });
+    }
+};
+
+// --- UGC GALLERY ---
+
+export const getUGCItems = async (req: Request, res: Response) => {
+    try {
+        const items = await (prisma as any).uGCItem.findMany({ orderBy: { created_at: 'desc' } });
+        return res.json(items);
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao buscar itens UGC", error });
+    }
+};
+
+export const createUGCItem = async (req: Request, res: Response) => {
+    try {
+        const { image, image_url, description } = req.body;
+        const item = await (prisma as any).uGCItem.create({
+            data: {
+                image_url: image || image_url || '',
+                description: description || null
+            }
+        });
+        return res.status(201).json(item);
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao criar item UGC", error });
+    }
+};
+
+export const updateUGCItem = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { image, image_url, description } = req.body;
+        const item = await (prisma as any).uGCItem.update({
+            where: { id: id as string },
+            data: {
+                image_url: image || image_url,
+                description
+            }
+        });
+        return res.json(item);
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao atualizar item UGC", error });
+    }
+};
+
+export const deleteUGCItem = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await (prisma as any).uGCItem.delete({ where: { id: id as string } });
+        return res.status(204).send();
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao excluir item UGC", error });
     }
 };

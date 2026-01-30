@@ -10,6 +10,7 @@ export interface Product {
   sizes?: string[];
   is_featured?: boolean;
   stock?: number;
+  costPrice?: number;
 }
 
 export interface CartItem extends Product {

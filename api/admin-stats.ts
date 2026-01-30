@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'luna-maria-kids-secret-key-2026');
-    
+
     // Buscar usuário
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId }
@@ -40,12 +40,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       totalUsers,
       totalSubscribers,
       totalOrders,
+      shopVisits,
+      clubVisits,
+      allOrders,
+      allUsersData,
       recentUsers,
       recentOrders
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { is_subscriber: true } }),
       prisma.order.count(),
+      (prisma as any).siteVisit.count({ where: { type: 'SHOP' } }),
+      (prisma as any).siteVisit.count({ where: { type: 'CLUB' } }),
+      prisma.order.findMany(),
+      prisma.user.findMany({
+        include: {
+          orders: { select: { id: true } }
+        }
+      }),
       prisma.user.findMany({
         take: 10,
         orderBy: { created_at: 'desc' },
@@ -72,20 +84,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
     ]);
 
+    // Total Faturamento: Total de pedidos finalizados
+    let totalRevenue = 0;
+    allOrders.forEach((o: any) => {
+      totalRevenue += Number(o.total_amount);
+    });
+
+    // Categorizar usuários
+    const usersWithCategory = allUsersData.map((u: any) => {
+      const hasOrders = u.orders.length > 0;
+      const isSub = u.is_subscriber;
+      let category = 'Curte';
+      if (hasOrders && isSub) category = 'Ama';
+      else if (hasOrders || isSub) category = 'Adora';
+
+      return {
+        ...u,
+        orderCount: u.orders.length,
+        categoryDisplay: category
+      };
+    });
+
     return res.status(200).json({
       stats: {
         totalUsers,
         totalSubscribers,
         totalOrders,
+        shopVisits,
+        clubVisits,
+        totalRevenue,
+        shopConversion: shopVisits > 0 ? ((totalOrders / shopVisits) * 100).toFixed(2) : 0,
+        clubConversion: clubVisits > 0 ? ((totalSubscribers / clubVisits) * 100).toFixed(2) : 0,
         conversionRate: totalUsers > 0 ? ((totalSubscribers / totalUsers) * 100).toFixed(2) : 0
       },
+      usersCategorized: usersWithCategory,
       recentUsers,
       recentOrders
     });
 
   } catch (error: any) {
     console.error('Erro ao buscar stats:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erro ao buscar estatísticas',
       details: error.message
     });
