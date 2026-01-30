@@ -40,44 +40,20 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
         try {
             setUploading(true);
 
-            // Convert file to base64
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
+            // Direct client-side upload using Vercel Blob
+            const { upload } = await import('@vercel/blob/client');
 
-            await new Promise((resolve, reject) => {
-                reader.onload = async () => {
-                    try {
-                        const base64Image = reader.result as string;
-
-                        const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                image: base64Image,
-                                filename: file.name
-                            })
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            setUrlCallback(data.url);
-                            resolve(data);
-                        } else {
-                            const errorData = await response.json();
-                            alert(`Erro ao fazer upload: ${errorData.message || 'Erro desconhecido'}`);
-                            reject(new Error(errorData.message));
-                        }
-                    } catch (error) {
-                        alert('Erro ao fazer upload da imagem');
-                        reject(error);
-                    }
-                };
-                reader.onerror = () => reject(reader.error);
+            const blob = await upload(file.name, file, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
             });
 
-        } catch (error) {
+            console.log('✅ Upload successful:', blob.url);
+            setUrlCallback(blob.url);
+
+        } catch (error: any) {
             console.error('Upload error:', error);
-            alert('Erro ao fazer upload da imagem');
+            alert(`Erro ao fazer upload: ${error.message || 'Erro desconhecido'}`);
         } finally {
             setUploading(false);
         }
