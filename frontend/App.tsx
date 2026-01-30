@@ -29,11 +29,7 @@ import 'swiper/css/navigation';
 // Premium Modular Components
 import { HeroSection } from './components/HeroSection';
 import { PremiumProductCard } from './components/PremiumProductCard';
-import { TryOnGuide } from './components/TryOnGuide';
-import { UGCGallery } from './components/UGCGallery';
-import { AutoCarousel } from './components/AutoCarousel';
-import { DifferentialsSection } from './components/DifferentialsSection';
-import { AdminModals } from './components/AdminModals';
+import { TryOnModal } from './components/TryOnModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || "dummy-key" });
@@ -71,6 +67,7 @@ const App: React.FC = () => {
   const [simulationsLeft, setSimulationsLeft] = useState(3);
   const [tryOnStep, setTryOnStep] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showTryOnModal, setShowTryOnModal] = useState(false);
   const [userImage, setUserImage] = useState<string | null>(null);
   const [tryOnResult, setTryOnResult] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -827,7 +824,14 @@ const App: React.FC = () => {
             <div className="relative group p-2">
               <PremiumProductCard
                 product={p}
-                onTryOn={(selected) => { setSelectedProduct(selected); setTryOnStep(2); if (!isSubscriber) setShowSubscriptionPopup(true); }}
+                onTryOn={(selected) => {
+                  setSelectedProduct(selected);
+                  if (!isSubscriber) {
+                    setShowSubscriptionPopup(true);
+                  } else {
+                    setShowTryOnModal(true);
+                  }
+                }}
                 onAddToCart={addToCart}
                 adjustImageForCategory={adjustImageForCategory}
               />
@@ -1734,6 +1738,14 @@ const App: React.FC = () => {
         handleDeleteMaterial={handleDeleteMaterial}
         loading={loading}
         defaultImage={DEFAULT_IMAGE}
+      />
+
+      <TryOnModal
+        isOpen={showTryOnModal}
+        onClose={() => setShowTryOnModal(false)}
+        product={selectedProduct}
+        onAddToCart={addToCart}
+        onDownload={(url) => { setTryOnResult(url); setShowPaymentModal(true); }}
       />
 
       <Sidebar />
