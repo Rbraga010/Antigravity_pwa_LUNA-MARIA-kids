@@ -13,15 +13,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (req.method === 'POST') {
             // Create material
-            const data = req.body;
-            const item = await prisma.contentMaterial.create({ data });
+            const { title, description, type, url, thumbnail_url, thumbnail, section, order } = req.body;
+            const item = await prisma.contentMaterial.create({
+                data: {
+                    title: title || 'Sem Título',
+                    description: description || '',
+                    type: type || 'IMAGE',
+                    url: url || '',
+                    thumbnail_url: thumbnail_url || thumbnail || '',
+                    section: section || 'KIDS',
+                    order: parseInt(String(order || 0))
+                }
+            });
             return res.status(201).json(item);
         }
 
         if (req.method === 'PATCH') {
             // Update material
-            const { id, ...data } = req.body;
-            const item = await prisma.contentMaterial.update({ where: { id }, data });
+            const { id, ...inputData } = req.body;
+
+            if (!id) {
+                return res.status(400).json({ message: 'ID is required' });
+            }
+
+            const updateData: any = {};
+            if (inputData.title !== undefined) updateData.title = inputData.title;
+            if (inputData.description !== undefined) updateData.description = inputData.description;
+            if (inputData.type !== undefined) updateData.type = inputData.type;
+            if (inputData.url !== undefined) updateData.url = inputData.url;
+            if (inputData.thumbnail_url !== undefined) updateData.thumbnail_url = inputData.thumbnail_url;
+            if (inputData.thumbnail !== undefined) updateData.thumbnail_url = inputData.thumbnail;
+            if (inputData.section !== undefined) updateData.section = inputData.section;
+            if (inputData.order !== undefined) updateData.order = parseInt(String(inputData.order));
+
+            const item = await prisma.contentMaterial.update({ where: { id }, data: updateData });
             return res.json(item);
         }
 
