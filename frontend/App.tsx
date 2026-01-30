@@ -52,6 +52,7 @@ const CLUB_IMAGES = {
 };
 
 const App: React.FC = () => {
+  console.log('🌙 Luna Maria PWA v4 [Refined Navigation & Auth Fix]');
   const [section, setSection] = useState<AppSection>(AppSection.HOME);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -129,10 +130,14 @@ const App: React.FC = () => {
     costPrice: typeof p.cost_price === 'string' ? parseFloat(p.cost_price) : (p.cost_price || 0)
   });
 
-  // Load initial data and check authentication
+  // Load initial data and check authentication (Combined Logic)
+  const isDataLoaded = useRef(false);
   useEffect(() => {
+    if (isDataLoaded.current) return;
+
     const loadData = async () => {
       try {
+        setLoading(true);
         // Check authentication
         const token = localStorage.getItem('authToken');
         if (token) {
@@ -148,69 +153,57 @@ const App: React.FC = () => {
           }
         }
 
-        // Load products (public)
-        const productsRes = await fetch('/api/products');
-        if (productsRes.ok) {
-          const productsData = await productsRes.json();
+        // Load concurrent data
+        const [productsRes, ugcRes] = await Promise.all([
+          fetch('/api/products').catch(() => ({ ok: false })),
+          fetch('/api/ugc').catch(() => ({ ok: false }))
+        ]);
+
+        if ('ok' in productsRes && productsRes.ok) {
+          const productsData = await (productsRes as any).json();
           setProducts(productsData.map(mapBackendProductToFrontend));
-        } else {
-          setProducts([]);
         }
 
-        // Load carousels and content (try to load, fallback to empty if not available)
-        try {
-          const carouselsRes = await fetch('/api/admin/carousels', {
-            headers: getAuthHeaders()
-          });
-          if (carouselsRes.ok) {
-            const carouselsData = await carouselsRes.json();
-            setTopCarousel(carouselsData.filter((c: CarouselItem) => c.type === 'TOP'));
-            setFeaturedCarousel(carouselsData.filter((c: CarouselItem) => c.type === 'FEATURED'));
-          }
-        } catch (e) {
-          // Not critical, carousels will be empty
+        if (ugcRes && 'ok' in ugcRes && ugcRes.ok) {
+          const ugcData = await (ugcRes as any).json();
+          setUgcItems(ugcData);
         }
 
-        try {
-          const materialsRes = await fetch('/api/admin/content', {
-            headers: getAuthHeaders()
-          });
-          if (materialsRes.ok) {
-            const materialsData = await materialsRes.json();
-            setKidsMaterials(materialsData.filter((m: ContentMaterial) => m.section === 'KIDS'));
-            setFamilyMaterials(materialsData.filter((m: ContentMaterial) => m.section === 'FAMILY'));
-          } else {
+        // Load carousels and materials
+        fetch('/api/admin/carousels', { headers: getAuthHeaders() })
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data) {
+              setTopCarousel(data.filter((c: CarouselItem) => c.type === 'TOP'));
+              setFeaturedCarousel(data.filter((c: CarouselItem) => c.type === 'FEATURED'));
+            }
+          }).catch(() => { });
+
+        fetch('/api/admin/content', { headers: getAuthHeaders() })
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data) {
+              setKidsMaterials(data.filter((m: ContentMaterial) => m.section === 'KIDS'));
+              setFamilyMaterials(data.filter((m: ContentMaterial) => m.section === 'FAMILY'));
+            } else {
+              setKidsMaterials(SAMPLE_KIDS_MATERIALS);
+              setFamilyMaterials(SAMPLE_FAMILY_MATERIALS);
+            }
+          }).catch(() => {
             setKidsMaterials(SAMPLE_KIDS_MATERIALS);
             setFamilyMaterials(SAMPLE_FAMILY_MATERIALS);
-          }
-        } catch (e) {
-          setKidsMaterials(SAMPLE_KIDS_MATERIALS);
-          setFamilyMaterials(SAMPLE_FAMILY_MATERIALS);
-        }
-        try {
-          const ugcRes = await fetch('/api/ugc');
-          if (ugcRes.ok) {
-            const ugcData = await ugcRes.json();
-            setUgcItems(ugcData);
-          }
-        } catch (e) {
-          // Fallback to empty
-        }
+          });
+
+        isDataLoaded.current = true;
       } catch (error) {
-        console.error('Failed to load data:', error);
-        setProducts([]);
+        console.error('Failed to load initial data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadData();
   }, []);
-
-  // Auto-load Admin stats when entering dashboard
-  useEffect(() => {
-    if (section === AppSection.ADMIN_DASHBOARD && user.role === 'SUPER_ADMIN') {
-      fetchAllUsers();
-    }
-  }, [section, user.role]);
 
   const generateTryOn = async (base64Image: string, product: Product) => {
     try {
@@ -667,12 +660,6 @@ const App: React.FC = () => {
 
   // --- UI COMPONENTS ---
 
-  // Auto-fetch users when Admin Dashboard is active
-  useEffect(() => {
-    if (section === AppSection.ADMIN_DASHBOARD) {
-      fetchAllUsers();
-    }
-  }, [section]);
 
   const TopBar = () => (
     <div className="hidden lg:flex h-8 bg-[#FAF8F5] border-b border-gray-100 px-6 items-center justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest z-[60]">

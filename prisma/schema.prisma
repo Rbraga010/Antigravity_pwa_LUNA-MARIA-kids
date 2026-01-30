@@ -165,3 +165,20 @@ model Reward {
 
   @@map("rewards")
 }
+
+model UGCItem {
+  id          String   @id @default(uuid())
+  image_url   String
+  description String?
+  created_at  DateTime @default(now())
+
+  @@map("ugc_items")
+}
+
+model SiteVisit {
+  id         String   @id @default(uuid())
+  type       String   // 'SHOP', 'CLUB', 'HOME'
+  created_at DateTime @default(now())
+
+  @@map("site_visits")
+}

@@ -14,24 +14,24 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ currentSection, onNavigate, onClubeClick, onAccountClick, cartCount }) => {
   const navItems = [
     { id: AppSection.HOME, label: 'Início', icon: Home, color: 'text-blue-400' },
-    { id: AppSection.SHOP, label: 'Loja', icon: ShoppingBag, color: 'text-purple-400' },
-    { id: AppSection.KIDS, label: 'Kids', icon: Gamepad2, color: 'text-pink-400' },
-    { id: AppSection.FAMILY_MOMENT, label: 'Família', icon: Heart, color: 'text-orange-400' },
+    { id: AppSection.SHOP, label: 'Loja Mágica', icon: ShoppingBag, color: 'text-purple-400' },
     { id: 'clube', label: 'Clube', icon: Moon, color: 'text-indigo-400', onClick: onClubeClick },
-    { id: AppSection.MY_ACCOUNT, label: 'Conta', icon: User, color: 'text-green-400', onClick: onAccountClick },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 px-4 py-3 z-40 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 px-8 py-4 z-[90] flex justify-between items-center shadow-[0_-8px_30px_rgba(0,0,0,0.04)] rounded-t-[40px]">
       {navItems.map((item) => (
         <button
           key={item.id}
           onClick={() => item.onClick ? item.onClick() : onNavigate(item.id as AppSection)}
-          className={`flex flex-col items-center gap-1 transition-all ${currentSection === item.id ? 'scale-110 ' + item.color : 'text-gray-300 hover:text-gray-500'
+          className={`flex flex-col items-center gap-1.5 transition-all duration-300 relative ${currentSection === item.id ? 'scale-110 ' + item.color : 'text-gray-300 hover:text-gray-400'
             }`}
         >
-          <item.icon size={20} strokeWidth={currentSection === item.id ? 2.5 : 2} />
-          <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
+          <item.icon size={22} strokeWidth={currentSection === item.id ? 2.5 : 2} />
+          <span className="text-[9px] font-black uppercase tracking-[0.15em]">{item.label}</span>
+          {currentSection === item.id && (
+            <div className={`absolute -bottom-1 w-1 h-1 rounded-full bg-current`} />
+          )}
         </button>
       ))}
     </nav>

@@ -1,5 +1,5 @@
 // Basic Service Worker for PWA Installation Requirements
-const CACHE_NAME = 'luna-maria-v3-admin';
+const CACHE_NAME = 'luna-maria-v4-optimization';
 
 self.addEventListener('install', (event) => {
     // Force the waiting service worker to become the active service worker.
