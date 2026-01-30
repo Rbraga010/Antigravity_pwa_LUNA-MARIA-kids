@@ -1128,6 +1128,7 @@ const App: React.FC = () => {
                           body: JSON.stringify({ email, password })
                         });
 
+
                         if (response.ok) {
                           const { token, user: userData } = await response.json();
                           localStorage.setItem('authToken', token);
@@ -1136,10 +1137,13 @@ const App: React.FC = () => {
                           setShowLoginModal(false);
                           setMascotMsg(`Bem-vinda de volta, ${userData.name}! ✨`);
                         } else {
-                          setMascotMsg('Email ou senha incorretos.');
+                          const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+                          console.error('Login error:', errorData);
+                          setMascotMsg(errorData.message || `Erro ${response.status}: Não foi possível fazer login.`);
                         }
                       } catch (error) {
-                        setMascotMsg('Erro ao fazer login. Tente novamente.');
+                        console.error('Login exception:', error);
+                        setMascotMsg(`Erro de conexão: ${error instanceof Error ? error.message : 'Tente novamente.'}`);
                       } finally {
                         setLoading(false);
                       }
