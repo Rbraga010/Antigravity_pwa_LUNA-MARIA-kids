@@ -22,7 +22,7 @@ interface AdminModalsProps {
     defaultImage: string;
 }
 
-export const AdminModals: React.FC<AdminModalsProps> = ({
+export const AdminModalsComponent: React.FC<AdminModalsProps> = ({
     editingProduct, setEditingProduct, handleSaveProduct, handleDeleteProduct,
     editingCarouselItem, setEditingCarouselItem, handleSaveCarousel, handleDeleteCarousel,
     editingMaterial, setEditingMaterial, handleSaveMaterial, handleDeleteMaterial,

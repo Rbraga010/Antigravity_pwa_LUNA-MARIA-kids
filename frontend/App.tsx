@@ -29,6 +29,11 @@ import 'swiper/css/navigation';
 // Premium Modular Components
 import { HeroSection } from './components/HeroSection';
 import { PremiumProductCard } from './components/PremiumProductCard';
+import { TryOnGuide } from './components/TryOnGuide';
+import { UGCGallery } from './components/UGCGallery';
+import { AutoCarousel } from './components/AutoCarousel';
+import { DifferentialsSection } from './components/DifferentialsSection';
+import { AdminModalsComponent } from './components/AdminModalsComponent';
 import { TryOnModal } from './components/TryOnModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -1723,7 +1728,7 @@ const App: React.FC = () => {
       <TickerBar />
 
       <ExternalIframeModal />
-      <AdminModals
+      <AdminModalsComponent
         editingProduct={editingProduct}
         setEditingProduct={setEditingProduct}
         handleSaveProduct={handleSaveProduct}
