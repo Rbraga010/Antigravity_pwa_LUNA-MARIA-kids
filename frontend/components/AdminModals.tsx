@@ -39,21 +39,44 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
 
         try {
             setUploading(true);
-            const formData = new FormData();
-            formData.append('image', file);
 
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
+            // Convert file to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            await new Promise((resolve, reject) => {
+                reader.onload = async () => {
+                    try {
+                        const base64Image = reader.result as string;
+
+                        const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                image: base64Image,
+                                filename: file.name
+                            })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            setUrlCallback(data.url);
+                            resolve(data);
+                        } else {
+                            const errorData = await response.json();
+                            alert(`Erro ao fazer upload: ${errorData.message || 'Erro desconhecido'}`);
+                            reject(new Error(errorData.message));
+                        }
+                    } catch (error) {
+                        alert('Erro ao fazer upload da imagem');
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(reader.error);
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setUrlCallback(data.url);
-            } else {
-                alert('Erro ao fazer upload da imagem');
-            }
         } catch (error) {
+            console.error('Upload error:', error);
             alert('Erro ao fazer upload da imagem');
         } finally {
             setUploading(false);
