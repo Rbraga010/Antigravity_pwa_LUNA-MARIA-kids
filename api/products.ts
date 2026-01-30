@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST - Criar novo produto
     if (req.method === 'POST') {
-      const { name, description, price, old_price, image_url, stock, category, display_order, sizes, is_featured } = req.body;
+      const { name, description, price, old_price, image, image_url, stock, category, display_order, sizes, is_featured } = req.body;
 
       const product = await prisma.product.create({
         data: {
@@ -62,7 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           description: description || '',
           price,
           old_price: old_price || null,
-          image_url,
+          image_url: image || image_url || '',
           stock: stock || 0,
           category,
           display_order: display_order || 0,
@@ -90,7 +90,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PUT ou PATCH - Atualizar produto
     if (req.method === 'PUT' || req.method === 'PATCH') {
-      const { id, name, description, price, old_price, image_url, stock, category, display_order, sizes, is_featured } = req.body;
+      const { id, name, description, price, old_price, image, image_url, stock, category, display_order, sizes, is_featured } = req.body;
       const productId = id || req.query.id;
 
       if (!productId) {
@@ -102,7 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (description !== undefined) updateData.description = description;
       if (price !== undefined) updateData.price = price;
       if (old_price !== undefined) updateData.old_price = old_price;
-      if (image_url !== undefined) updateData.image_url = image_url;
+      if (image !== undefined || image_url !== undefined) updateData.image_url = image || image_url;
       if (stock !== undefined) updateData.stock = stock;
       if (category !== undefined) updateData.category = category;
       if (display_order !== undefined) updateData.display_order = display_order;

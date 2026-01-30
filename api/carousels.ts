@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const carousels = await prisma.carouselItem.findMany({
         orderBy: { order: 'asc' }
       });
-      
+
       // Já retorna no formato correto (image_url, não precisa transformar)
       return res.status(200).json(carousels);
     }
@@ -41,11 +41,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST - Criar novo banner
     if (req.method === 'POST') {
-      const { image_url, title, subtitle, type, order } = req.body;
+      const { image, image_url, title, subtitle, type, order } = req.body;
 
       const carousel = await prisma.carouselItem.create({
         data: {
-          image_url,
+          image_url: image || image_url || '',
           title: title || null,
           subtitle: subtitle || null,
           type,
@@ -58,12 +58,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PUT - Atualizar banner
     if (req.method === 'PUT') {
-      const { id, image_url, title, subtitle, type, order } = req.body;
+      const { id, image, image_url, title, subtitle, type, order } = req.body;
 
       const carousel = await prisma.carouselItem.update({
         where: { id },
         data: {
-          image_url,
+          image_url: image || image_url,
           title,
           subtitle,
           type,
@@ -89,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   } catch (error: any) {
     console.error('Erro na API de carousels:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erro ao processar requisição',
       details: error.message
     });

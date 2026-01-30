@@ -8,7 +8,7 @@ export const createProduct = async (req: Request, res: Response) => {
         const {
             name, description, price, oldPrice, old_price,
             image, image_url, stock, category,
-            displayOrder, display_order, sizes
+            displayOrder, display_order, sizes, is_featured
         } = req.body;
 
         const product = await prisma.product.create({
@@ -21,7 +21,8 @@ export const createProduct = async (req: Request, res: Response) => {
                 stock: stock !== undefined ? parseInt(String(stock)) : 0,
                 category: category || 'geral',
                 display_order: displayOrder !== undefined ? parseInt(String(displayOrder)) : (display_order !== undefined ? parseInt(String(display_order)) : 0),
-                sizes: sizes || []
+                sizes: sizes || [],
+                is_featured: is_featured || false
             }
         });
         return res.status(201).json(product);
@@ -37,7 +38,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         const {
             name, description, price, oldPrice, old_price,
             image, image_url, stock, category,
-            displayOrder, display_order, sizes
+            displayOrder, display_order, sizes, is_featured
         } = req.body;
 
         const product = await prisma.product.update({
@@ -47,11 +48,12 @@ export const updateProduct = async (req: Request, res: Response) => {
                 description,
                 price: price !== undefined ? parseFloat(String(price)) : undefined,
                 old_price: oldPrice !== undefined ? parseFloat(String(oldPrice)) : (old_price !== undefined ? parseFloat(String(old_price)) : undefined),
-                image_url: image !== undefined ? image : (image_url !== undefined ? image_url : undefined),
+                image_url: (image !== undefined || image_url !== undefined) ? (image || image_url) : undefined,
                 stock: stock !== undefined ? parseInt(String(stock)) : undefined,
                 category,
                 display_order: displayOrder !== undefined ? parseInt(String(displayOrder)) : (display_order !== undefined ? parseInt(String(display_order)) : undefined),
-                sizes
+                sizes,
+                is_featured: is_featured !== undefined ? is_featured : undefined
             }
         });
         return res.json(product);
@@ -84,8 +86,16 @@ export const getCarousels = async (req: Request, res: Response) => {
 
 export const createCarouselItem = async (req: Request, res: Response) => {
     try {
-        const data = req.body;
-        const item = await prisma.carouselItem.create({ data });
+        const { image, image_url, title, subtitle, type, order } = req.body;
+        const item = await prisma.carouselItem.create({
+            data: {
+                image_url: image || image_url || '',
+                title: title || null,
+                subtitle: subtitle || null,
+                type,
+                order: order || 0
+            }
+        });
         return res.status(201).json(item);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao criar item de carrossel", error });
@@ -95,8 +105,17 @@ export const createCarouselItem = async (req: Request, res: Response) => {
 export const updateCarouselItem = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const data = req.body;
-        const item = await prisma.carouselItem.update({ where: { id: id as string }, data });
+        const { image, image_url, title, subtitle, type, order } = req.body;
+        const item = await prisma.carouselItem.update({
+            where: { id: id as string },
+            data: {
+                image_url: image || image_url,
+                title,
+                subtitle,
+                type,
+                order
+            }
+        });
         return res.json(item);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao atualizar item de carrossel", error });
@@ -130,8 +149,18 @@ export const getMaterials = async (req: Request, res: Response) => {
 
 export const createMaterial = async (req: Request, res: Response) => {
     try {
-        const data = req.body;
-        const item = await prisma.contentMaterial.create({ data });
+        const { title, description, type, url, thumbnail_url, image, image_url, section, order } = req.body;
+        const item = await prisma.contentMaterial.create({
+            data: {
+                title,
+                description: description || null,
+                type,
+                url,
+                thumbnail_url: thumbnail_url || image || image_url || null,
+                section,
+                order: order || 0
+            }
+        });
         return res.status(201).json(item);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao criar material", error });
@@ -141,8 +170,19 @@ export const createMaterial = async (req: Request, res: Response) => {
 export const updateMaterial = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const data = req.body;
-        const item = await prisma.contentMaterial.update({ where: { id: id as string }, data });
+        const { title, description, type, url, thumbnail_url, image, image_url, section, order } = req.body;
+        const item = await prisma.contentMaterial.update({
+            where: { id: id as string },
+            data: {
+                title,
+                description,
+                type,
+                url,
+                thumbnail_url: thumbnail_url !== undefined ? thumbnail_url : (image || image_url),
+                section,
+                order
+            }
+        });
         return res.json(item);
     } catch (error) {
         return res.status(500).json({ message: "Erro ao atualizar material", error });

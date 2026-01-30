@@ -68,7 +68,7 @@ export const TryOnModal: React.FC<TryOnModalProps> = ({
             await new Promise(resolve => setTimeout(resolve, 3500));
 
             // Mock de resultado realista
-            setResultImage(product.image); // Por enquanto usamos a própria imagem do produto como resultado
+            setResultImage(product.image_url || product.image);
             setStep('RESULT');
         } catch (err) {
             setError('Ops! A magia falhou. Tente novamente.');
@@ -266,8 +266,8 @@ export const TryOnModal: React.FC<TryOnModalProps> = ({
                         <div
                             key={s}
                             className={`flex-1 transition-all duration-500 ${['INSTRUCTIONS', 'UPLOAD', 'PROCESSING', 'RESULT'].indexOf(step) >= i
-                                    ? (step === 'RESULT' ? 'bg-green-400' : 'bg-purple-400')
-                                    : 'bg-transparent'
+                                ? (step === 'RESULT' ? 'bg-green-400' : 'bg-purple-400')
+                                : 'bg-transparent'
                                 }`}
                         />
                     ))}

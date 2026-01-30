@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const materials = await prisma.contentMaterial.findMany({
         orderBy: { order: 'asc' }
       });
-      
+
       // Já retorna no formato correto (thumbnail_url, url, etc)
       return res.status(200).json(materials);
     }
@@ -41,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST - Criar novo material
     if (req.method === 'POST') {
-      const { title, description, type, url, thumbnail_url, section, order } = req.body;
+      const { title, description, type, url, image, image_url, thumbnail_url, section, order } = req.body;
 
       const material = await prisma.contentMaterial.create({
         data: {
@@ -49,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           description: description || null,
           type,
           url,
-          thumbnail_url: thumbnail_url || null,
+          thumbnail_url: thumbnail_url || image || image_url || null,
           section,
           order: order || 0
         }
@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PUT - Atualizar material
     if (req.method === 'PUT') {
-      const { id, title, description, type, url, thumbnail_url, section, order } = req.body;
+      const { id, title, description, type, url, image, image_url, thumbnail_url, section, order } = req.body;
 
       const material = await prisma.contentMaterial.update({
         where: { id },
@@ -69,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           description,
           type,
           url,
-          thumbnail_url,
+          thumbnail_url: thumbnail_url !== undefined ? thumbnail_url : (image || image_url),
           section,
           order
         }
@@ -93,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   } catch (error: any) {
     console.error('Erro na API de materials:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erro ao processar requisição',
       details: error.message
     });
