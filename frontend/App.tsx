@@ -205,6 +205,13 @@ const App: React.FC = () => {
     loadData();
   }, []);
 
+  // Auto-load Admin stats when entering dashboard
+  useEffect(() => {
+    if (section === AppSection.ADMIN_DASHBOARD && user.role === 'SUPER_ADMIN') {
+      fetchAllUsers();
+    }
+  }, [section, user.role]);
+
   const generateTryOn = async (base64Image: string, product: Product) => {
     try {
       setLoading(true);
@@ -595,6 +602,26 @@ const App: React.FC = () => {
       }
     } catch (error) {
       setMascotMsg('Erro ao atualizar usuário.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Tem certeza que deseja excluir permanentemente este cliente?')) return;
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        setAllUsers(prev => prev.filter(u => u.id !== userId));
+        setMascotMsg('Cliente removido com sucesso.');
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
     } finally {
       setLoading(false);
     }
@@ -1753,15 +1780,20 @@ const App: React.FC = () => {
                           </span>
                         </td>
                         <td className="p-8">
-                          <button onClick={() => setEditingUser(u)} className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-pink-400 transition-all">
-                            <Settings2 size={18} />
-                          </button>
-                          <button
-                            onClick={() => toggleUserSubscription(u.id, u.is_subscriber)}
-                            className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${u.is_subscriber ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400' : 'bg-purple-400 text-white shadow-lg hover:scale-105'}`}
-                          >
-                            {u.is_subscriber ? 'Remover Clube' : 'Tornar Assinante'}
-                          </button>
+                          <div className="flex gap-2">
+                            <button onClick={() => setEditingUser(u)} className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-pink-400 transition-all">
+                              <Edit3 size={18} />
+                            </button>
+                            <button onClick={() => handleDeleteUser(u.id)} className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-red-400 transition-all">
+                              <Trash2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => toggleUserSubscription(u.id, u.is_subscriber)}
+                              className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${u.is_subscriber ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400' : 'bg-purple-400 text-white shadow-lg hover:scale-105'}`}
+                            >
+                              {u.is_subscriber ? 'Remover Clube' : 'Tornar Assinante'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1796,12 +1828,28 @@ const App: React.FC = () => {
               <button onClick={() => removeFromCart(item.id)} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Trash2 size={20} /></button>
             </div>
           ))}
-          <div className="mt-12 bg-[#6B5A53] p-10 rounded-[56px] shadow-2xl space-y-6">
-            <div className="flex justify-between items-center text-white">
-              <span className="text-xs font-black uppercase tracking-widest opacity-60">Total do Pedido</span>
-              <span className="text-2xl font-black">R$ {cartTotal.toFixed(2)}</span>
-            </div>
-            <button className="w-full bg-white text-[#6B5A53] py-5 rounded-[32px] font-black text-xs uppercase shadow-xl tracking-widest active:scale-95 transition-all">Finalizar com Segurança</button>
+          <div className="space-y-4">
+            <button
+              onClick={() => {
+                const itemsList = cart.map(item => `- ${item.name} (R$ ${item.price.toFixed(2)})`).join('%0A');
+                const message = `Olá! Quero comprar estes itens na Luna Maria Kids:%0A${itemsList}%0A%0A*Total: R$ ${cartTotal.toFixed(2)}*`;
+                const whatsappUrl = `https://wa.me/message/64F5ZVJWHSZ2M1?text=${message}`;
+                window.open(whatsappUrl, '_blank');
+              }}
+              className="w-full bg-white text-[#6B5A53] py-5 rounded-[32px] font-black text-xs uppercase shadow-xl tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <MessageCircle size={18} /> Finalizar via WhatsApp
+            </button>
+            <button
+              onClick={() => {
+                alert('A compra direta via Cartão/PIX está temporariamente indisponível. Você será direcionado para falar diretamente com a Thais no WhatsApp! ✨');
+                const message = `Olá Thais! Tentei realizar uma compra direta mas vi que está em manutenção. Pode me ajudar com estes itens?%0A%0A*Total: R$ ${cartTotal.toFixed(2)}*`;
+                window.open(`https://wa.me/message/64F5ZVJWHSZ2M1?text=${message}`, '_blank');
+              }}
+              className="w-full bg-[#BBD4E8] text-white py-4 rounded-[32px] font-black text-[10px] uppercase shadow-lg tracking-widest active:scale-95 transition-all opacity-80"
+            >
+              Compra Direta (Cartão/PIX)
+            </button>
           </div>
         </div>
       )}

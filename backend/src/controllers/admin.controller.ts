@@ -261,6 +261,18 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.user.delete({
+            where: { id: id as string }
+        });
+        return res.status(204).send();
+    } catch (error) {
+        return res.status(500).json({ message: "Erro ao excluir usuário", error });
+    }
+};
+
 // --- UGC GALLERY ---
 
 export const getUGCItems = async (req: Request, res: Response) => {

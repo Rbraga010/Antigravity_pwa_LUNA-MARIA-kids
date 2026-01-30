@@ -5,7 +5,7 @@ import {
     createProduct, updateProduct, deleteProduct,
     getCarousels, createCarouselItem, updateCarouselItem, deleteCarouselItem,
     getMaterials, createMaterial, updateMaterial, deleteMaterial,
-    getUsers, updateUser
+    getUsers, updateUser, deleteUser
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -16,6 +16,7 @@ router.use(authMiddleware, superAdminMiddleware);
 // Usuários
 router.get("/users", getUsers);
 router.patch("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
 // Produtos
 router.post("/products", createProduct);
